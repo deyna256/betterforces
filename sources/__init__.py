@@ -1,0 +1,1 @@
+"""BetterForces application package."""

@@ -1,8 +1,10 @@
 """Codeforces API domain models."""
 
-from typing import Optional, List
-from pydantic import BaseModel
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import List, Optional
+
+from sources.domain.models.base import BaseDomainModel
 
 
 class SubmissionStatus(str, Enum):
@@ -17,14 +19,15 @@ class SubmissionStatus(str, Enum):
     IDLENESS_LIMIT_EXCEEDED = "IDLENESS_LIMIT_EXCEEDED"
 
 
-class Problem(BaseModel):
+@dataclass
+class Problem(BaseDomainModel):
     """Codeforces problem model."""
 
     contest_id: int
     index: str
     name: str
     rating: Optional[int] = None
-    tags: List[str] = []
+    tags: List[str] = field(default_factory=list)
 
     @property
     def problem_key(self) -> str:
@@ -32,7 +35,8 @@ class Problem(BaseModel):
         return f"{self.contest_id}{self.index}"
 
 
-class Submission(BaseModel):
+@dataclass
+class Submission(BaseDomainModel):
     """Codeforces submission model."""
 
     id: int

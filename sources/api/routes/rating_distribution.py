@@ -1,26 +1,24 @@
 """Rating distribution API routes."""
 
 from datetime import datetime
+from typing import Optional
 
-from litestar import Controller, get
-from litestar.response import Response
-from litestar.exceptions import HTTPException
-from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+from litestar import get
 from litestar.pagination import OffsetPagination
 from litestar.params import Parameter
-from typing import Optional
+from litestar.response import Response
 
 from sources.api.deps import (
     codeforces_data_service_dependency,
     rating_distribution_service_dependency,
 )
+from sources.api.routes.base import BaseMetricController
 from sources.api.schemas.rating_distribution import RatingPointSchema
-from sources.services.codeforces_data_service import CodeforcesDataService
 from sources.domain.services.rating_distribution_service import RatingDistributionService
-from sources.infrastructure.codeforces_client import CodeforcesAPIError
+from sources.services.codeforces_data_service import CodeforcesDataService
 
 
-class RatingDistributionController(Controller):
+class RatingDistributionController(BaseMetricController):
     """Controller for rating distribution endpoints."""
 
     path = "/rating-distribution"
@@ -66,65 +64,40 @@ class RatingDistributionController(Controller):
         Returns:
             Paginated list of rating points with metadata
         """
-        try:
-            # Fetch user submissions
-            submissions = await data_service.get_user_submissions(handle)
+        submissions = await data_service.get_user_submissions(handle)
 
-            if not submissions:
-                raise HTTPException(
-                    status_code=HTTP_404_NOT_FOUND,
-                    detail=f"No submissions found for user '{handle}'",
-                    extra={"handle": handle},
-                )
+        self._validate_submissions_exist(submissions, handle)
 
-            # Analyze rating distribution
-            distribution = rating_service.analyze_rating_distribution(handle, submissions)
+        distribution = rating_service.analyze_rating_distribution(handle, submissions)
 
-            # Convert to response schema
-            rating_points = [
-                RatingPointSchema(
-                    timestamp=point.timestamp,
-                    rating=point.rating,
-                    problem_name=point.problem_name,
-                    date=point.date.strftime("%Y-%m-%d"),
-                )
-                for point in distribution.rating_points
-            ]
-
-            # Sort by timestamp to ensure chronological order
-            rating_points.sort(key=lambda x: x.timestamp)
-
-            # Apply date range filtering
-            if start_date is not None:
-                start_timestamp = int(start_date.timestamp())
-                rating_points = [p for p in rating_points if p.timestamp >= start_timestamp]
-
-            if end_date is not None:
-                end_timestamp = int(end_date.timestamp())
-                rating_points = [p for p in rating_points if p.timestamp <= end_timestamp]
-
-            # Calculate pagination
-            total = len(rating_points)
-            paginated_items = rating_points[offset : offset + limit]
-
-            return Response(
-                OffsetPagination[RatingPointSchema](
-                    items=paginated_items, limit=limit, offset=offset, total=total
-                ),
-                headers={"Cache-Control": "public, max-age=14400"},  # 4 hours like our TTL
+        rating_points = [
+            RatingPointSchema(
+                timestamp=point.timestamp,
+                rating=point.rating,
+                problem_name=point.problem_name,
+                date=point.date.strftime("%Y-%m-%d"),
             )
+            for point in distribution.rating_points
+        ]
 
-        except CodeforcesAPIError as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to fetch data from Codeforces API: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Internal server error: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
+        rating_points.sort(key=lambda x: x.timestamp)
+
+        # Apply date range filtering
+        if start_date is not None:
+            start_timestamp = int(start_date.timestamp())
+            rating_points = [p for p in rating_points if p.timestamp >= start_timestamp]
+
+        if end_date is not None:
+            end_timestamp = int(end_date.timestamp())
+            rating_points = [p for p in rating_points if p.timestamp <= end_timestamp]
+
+        # Calculate pagination
+        total = len(rating_points)
+        paginated_items = rating_points[offset : offset + limit]
+
+        return Response(
+            OffsetPagination[RatingPointSchema](
+                items=paginated_items, limit=limit, offset=offset, total=total
+            ),
+            headers=self.CACHE_HEADERS,
+        )

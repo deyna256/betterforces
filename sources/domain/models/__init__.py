@@ -1,6 +1,14 @@
 """Domain models package."""
 
-from .codeforces import SubmissionStatus, Problem, Submission
-from .rating_distribution import RatingPoint, RatingDistribution
+from .base import BaseDomainModel
+from .codeforces import Problem, Submission, SubmissionStatus
+from .rating_distribution import RatingDistribution, RatingPoint
 
-__all__ = ["SubmissionStatus", "Problem", "Submission", "RatingPoint", "RatingDistribution"]
+__all__ = [
+    "BaseDomainModel",
+    "SubmissionStatus",
+    "Problem",
+    "Submission",
+    "RatingPoint",
+    "RatingDistribution",
+]

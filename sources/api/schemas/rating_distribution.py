@@ -2,10 +2,13 @@
 
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel, Field
+
+from pydantic import Field
+
+from sources.api.schemas.base import BaseAPISchema
 
 
-class RatingPointSchema(BaseModel):
+class RatingPointSchema(BaseAPISchema):
     """Schema for a single rating point in the distribution."""
 
     timestamp: int = Field(..., description="Unix timestamp when the problem was solved")
@@ -13,11 +16,8 @@ class RatingPointSchema(BaseModel):
     problem_name: str = Field(..., description="Name of the solved problem")
     date: str = Field(..., description="Human-readable date string")
 
-    class Config:
-        from_attributes = True
 
-
-class RatingDistributionResponse(BaseModel):
+class RatingDistributionResponse(BaseAPISchema):
     """Response schema for rating distribution over time."""
 
     handle: str = Field(..., description="Codeforces handle")
@@ -25,6 +25,3 @@ class RatingDistributionResponse(BaseModel):
         ..., description="Chronological list of solved problems with ratings"
     )
     last_updated: datetime = Field(..., description="Timestamp when data was last fetched")
-
-    class Config:
-        from_attributes = True

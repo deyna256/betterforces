@@ -1,9 +1,9 @@
 """Difficulty progression service for analyzing problem difficulty growth over time."""
 
-from typing import List, Dict
-from datetime import datetime, timezone
 from collections import defaultdict
+from datetime import datetime, timezone
 from statistics import mean
+from typing import Dict, List
 
 from sources.domain.models.codeforces import Submission
 from sources.domain.models.difficulty_progression import (
@@ -11,9 +11,10 @@ from sources.domain.models.difficulty_progression import (
     DifficultyProgression,
     GrowthRate,
 )
+from sources.domain.services.base import BaseMetricService
 
 
-class DifficultyProgressionService:
+class DifficultyProgressionService(BaseMetricService):
     """Service for generating difficulty progression analytics."""
 
     @staticmethod
@@ -86,23 +87,6 @@ class DifficultyProgressionService:
             first_solve_date=datetime.fromtimestamp(first_solve_date, tz=timezone.utc),
             latest_solve_date=datetime.fromtimestamp(latest_solve_date, tz=timezone.utc),
         )
-
-    @staticmethod
-    def _deduplicate_problems(submissions: List[Submission]) -> List[Submission]:
-        """Remove duplicate problem solves, keeping only the first solution."""
-        seen_problems = set()
-        unique_submissions = []
-
-        # Sort by time to ensure earliest solves come first
-        sorted_submissions = sorted(submissions, key=lambda s: s.creation_time_seconds)
-
-        for submission in sorted_submissions:
-            problem_key = submission.problem.problem_key
-            if problem_key not in seen_problems:
-                seen_problems.add(problem_key)
-                unique_submissions.append(submission)
-
-        return unique_submissions
 
     @staticmethod
     def _group_by_month(submissions: List[Submission]) -> Dict[str, List[Submission]]:

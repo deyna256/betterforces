@@ -1,29 +1,29 @@
 """Tags domain models."""
 
+from dataclasses import dataclass
 from typing import List
-from pydantic import BaseModel, Field
+
+from sources.domain.models.base import BaseDomainModel
 
 
-class TagInfo(BaseModel):
+@dataclass
+class TagInfo(BaseDomainModel):
     """Information about a single tag."""
 
-    tag: str = Field(..., description="The tag name")
-    average_rating: float = Field(
-        ..., description="Average rating of all solved problems with this tag"
-    )
-    problem_count: int = Field(..., description="Number of solved problems with this tag")
-    problems: List[str] = Field(..., description="Names of solved problems with this tag")
+    tag: str
+    average_rating: float
+    problem_count: int
+    problems: List[str]
 
 
-class TagsAnalysis(BaseModel):
+@dataclass
+class TagsAnalysis(BaseDomainModel):
     """Analysis of user's problem-solving activity by tags."""
 
-    handle: str = Field(..., description="Codeforces handle")
-    tags: List[TagInfo] = Field(..., description="List of tags analysis")
-    overall_average_rating: float = Field(
-        ..., description="Overall average rating of all solved problems"
-    )
-    total_solved: int = Field(..., description="Total number of problems solved")
+    handle: str
+    tags: List[TagInfo]
+    overall_average_rating: float
+    total_solved: int
 
     def get_weak_tags(self, threshold_diff: int = 200) -> List[TagInfo]:
         """

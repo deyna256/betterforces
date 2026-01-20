@@ -1,11 +1,14 @@
 """Difficulty progression API schemas."""
 
-from typing import List
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import List
+
+from pydantic import Field
+
+from sources.api.schemas.base import BaseAPISchema
 
 
-class DifficultyPointSchema(BaseModel):
+class DifficultyPointSchema(BaseAPISchema):
     """Schema for difficulty progression data point."""
 
     date_month: str = Field(..., description="Month in YYYY-MM format")
@@ -17,11 +20,8 @@ class DifficultyPointSchema(BaseModel):
     period_start: datetime = Field(..., description="Start timestamp of this period")
     period_end: datetime = Field(..., description="End timestamp of this period")
 
-    class Config:
-        from_attributes = True
 
-
-class GrowthRateSchema(BaseModel):
+class GrowthRateSchema(BaseAPISchema):
     """Schema for growth rate calculation between two periods."""
 
     from_period: str = Field(..., description="From period (YYYY-MM or YYYY-Q)")
@@ -30,11 +30,8 @@ class GrowthRateSchema(BaseModel):
     monthly_growth: float = Field(..., description="Average monthly growth rate")
     months_difference: int = Field(..., description="Number of months between periods")
 
-    class Config:
-        from_attributes = True
 
-
-class DifficultyProgressionResponse(BaseModel):
+class DifficultyProgressionResponse(BaseAPISchema):
     """Response schema for difficulty progression analysis."""
 
     monthly_progression: List[DifficultyPointSchema] = Field(
@@ -51,6 +48,3 @@ class DifficultyProgressionResponse(BaseModel):
     first_solve_date: datetime = Field(..., description="Date of first problem solved")
     latest_solve_date: datetime = Field(..., description="Date of most recent problem solved")
     last_updated: datetime = Field(..., description="Timestamp when data was last fetched")
-
-    class Config:
-        from_attributes = True

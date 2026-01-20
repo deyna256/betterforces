@@ -3,10 +3,11 @@
 from typing import List
 
 from sources.domain.models.codeforces import Submission
-from sources.domain.models.rating_distribution import RatingPoint, RatingDistribution
+from sources.domain.models.rating_distribution import RatingDistribution, RatingPoint
+from sources.domain.services.base import BaseMetricService
 
 
-class RatingDistributionService:
+class RatingDistributionService(BaseMetricService):
     """Service for generating rating distribution analytics."""
 
     @staticmethod
@@ -54,23 +55,6 @@ class RatingDistributionService:
             total_solved=len(rating_points),
             rating_growth_periods=growth_periods,
         )
-
-    @staticmethod
-    def _deduplicate_problems(submissions: List[Submission]) -> List[Submission]:
-        """Remove duplicate problem solves, keeping only the first solution."""
-        seen_problems = set()
-        unique_submissions = []
-
-        # Sort by time to ensure earliest solves come first
-        sorted_submissions = sorted(submissions, key=lambda s: s.creation_time_seconds)
-
-        for submission in sorted_submissions:
-            problem_key = submission.problem.problem_key
-            if problem_key not in seen_problems:
-                seen_problems.add(problem_key)
-                unique_submissions.append(submission)
-
-        return unique_submissions
 
     @staticmethod
     def _create_rating_points(submissions: List[Submission]) -> List[RatingPoint]:

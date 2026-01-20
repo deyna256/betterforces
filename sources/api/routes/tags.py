@@ -1,20 +1,17 @@
 """Tags API routes."""
 
-from datetime import datetime, timezone
-from litestar import Controller, get
-from litestar.response import Response
-from litestar.exceptions import HTTPException
-from litestar.status_codes import HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+from litestar import get
 from litestar.params import Parameter
+from litestar.response import Response
 
 from sources.api.deps import codeforces_data_service_dependency, tags_service_dependency
-from sources.api.schemas.tags import TagsResponse, SimpleTagInfoSchema, WeakTagsResponse
-from sources.services.codeforces_data_service import CodeforcesDataService
+from sources.api.routes.base import BaseMetricController
+from sources.api.schemas.tags import SimpleTagInfoSchema, TagsResponse, WeakTagsResponse
 from sources.domain.services.tags_service import TagsService
-from sources.infrastructure.codeforces_client import CodeforcesAPIError
+from sources.services.codeforces_data_service import CodeforcesDataService
 
 
-class TagsController(Controller):
+class TagsController(BaseMetricController):
     """Controller for tags endpoints."""
 
     path = "/tags"
@@ -41,52 +38,22 @@ class TagsController(Controller):
         Returns:
             Tags analysis with average ratings by tag
         """
-        try:
-            # Fetch user submissions
-            submissions = await data_service.get_user_submissions(handle)
+        submissions = await data_service.get_user_submissions(handle)
 
-            if not submissions:
-                raise HTTPException(
-                    status_code=HTTP_404_NOT_FOUND,
-                    detail=f"No submissions found for user '{handle}'",
-                    extra={"handle": handle},
-                )
+        self._validate_submissions_exist(submissions, handle)
 
-            # Analyze tags
-            tags_analysis = tags_service.analyze_tags(handle, submissions)
+        tags_analysis = tags_service.analyze_tags(handle, submissions)
 
-            # Convert to response schema
-            tags_info = [
-                SimpleTagInfoSchema(
-                    tag=tag.tag, average_rating=tag.average_rating, problem_count=tag.problem_count
-                )
-                for tag in tags_analysis.tags
-            ]
+        tags_info = [SimpleTagInfoSchema.model_validate(tag) for tag in tags_analysis.tags]
 
-            return Response(
-                TagsResponse(
-                    tags=tags_info,
-                    overall_average_rating=tags_analysis.overall_average_rating,
-                    total_solved=tags_analysis.total_solved,
-                    last_updated=datetime.now(timezone.utc),
-                ),
-                headers={"Cache-Control": "public, max-age=14400"},  # 4 hours like our TTL
-            )
+        response = TagsResponse(
+            tags=tags_info,
+            overall_average_rating=tags_analysis.overall_average_rating,
+            total_solved=tags_analysis.total_solved,
+            last_updated=self.get_current_timestamp(),
+        )
 
-        except CodeforcesAPIError as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to fetch data from Codeforces API: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Internal server error: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
+        return Response(response, headers=self.CACHE_HEADERS)
 
     @get(
         path="/{handle:str}/weak",
@@ -119,53 +86,22 @@ class TagsController(Controller):
         Returns:
             Weak tags analysis
         """
-        try:
-            # Fetch user submissions
-            submissions = await data_service.get_user_submissions(handle)
+        submissions = await data_service.get_user_submissions(handle)
 
-            if not submissions:
-                raise HTTPException(
-                    status_code=HTTP_404_NOT_FOUND,
-                    detail=f"No submissions found for user '{handle}'",
-                    extra={"handle": handle},
-                )
+        self._validate_submissions_exist(submissions, handle)
 
-            # Analyze tags
-            tags_analysis = tags_service.analyze_tags(handle, submissions)
+        tags_analysis = tags_service.analyze_tags(handle, submissions)
 
-            # Get weak tags
-            weak_tags = tags_analysis.get_weak_tags(threshold)
+        weak_tags = tags_analysis.get_weak_tags(threshold)
 
-            # Convert to response schema
-            weak_tags_info = [
-                SimpleTagInfoSchema(
-                    tag=tag.tag, average_rating=tag.average_rating, problem_count=tag.problem_count
-                )
-                for tag in weak_tags
-            ]
+        weak_tags_info = [SimpleTagInfoSchema.model_validate(tag) for tag in weak_tags]
 
-            return Response(
-                WeakTagsResponse(
-                    weak_tags=weak_tags_info,
-                    overall_average_rating=tags_analysis.overall_average_rating,
-                    total_solved=tags_analysis.total_solved,
-                    threshold_used=threshold,
-                    last_updated=datetime.now(timezone.utc),
-                ),
-                headers={"Cache-Control": "public, max-age=14400"},  # 4 hours like our TTL
-            )
+        response = WeakTagsResponse(
+            weak_tags=weak_tags_info,
+            overall_average_rating=tags_analysis.overall_average_rating,
+            total_solved=tags_analysis.total_solved,
+            threshold_used=threshold,
+            last_updated=self.get_current_timestamp(),
+        )
 
-        except CodeforcesAPIError as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to fetch data from Codeforces API: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Internal server error: {str(e)}",
-                extra={"handle": handle, "error": str(e)},
-            )
+        return Response(response, headers=self.CACHE_HEADERS)

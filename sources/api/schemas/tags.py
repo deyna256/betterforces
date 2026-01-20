@@ -1,11 +1,14 @@
 """Tags API schemas."""
 
-from typing import List
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import List
+
+from pydantic import Field
+
+from sources.api.schemas.base import BaseAPISchema
 
 
-class SimpleTagInfoSchema(BaseModel):
+class SimpleTagInfoSchema(BaseAPISchema):
     """Schema for a single tag information (simplified version)."""
 
     tag: str = Field(..., description="The tag name")
@@ -14,9 +17,6 @@ class SimpleTagInfoSchema(BaseModel):
     )
     problem_count: int = Field(..., description="Number of solved problems with this tag")
 
-    class Config:
-        from_attributes = True
-
 
 class TagInfoSchema(SimpleTagInfoSchema):
     """Schema for a single tag information (detailed version for weak tags)."""
@@ -24,7 +24,7 @@ class TagInfoSchema(SimpleTagInfoSchema):
     problems: List[str] = Field(..., description="Names of solved problems with this tag")
 
 
-class TagsResponse(BaseModel):
+class TagsResponse(BaseAPISchema):
     """Response schema for tags analysis."""
 
     tags: List[SimpleTagInfoSchema] = Field(..., description="List of tags analysis")
@@ -34,11 +34,8 @@ class TagsResponse(BaseModel):
     total_solved: int = Field(..., description="Total number of problems solved")
     last_updated: datetime = Field(..., description="Timestamp when data was last fetched")
 
-    class Config:
-        from_attributes = True
 
-
-class WeakTagsResponse(BaseModel):
+class WeakTagsResponse(BaseAPISchema):
     """Response schema for weak tags analysis."""
 
     weak_tags: List[SimpleTagInfoSchema] = Field(
@@ -52,6 +49,3 @@ class WeakTagsResponse(BaseModel):
         ..., description="Rating difference threshold used to identify weak tags"
     )
     last_updated: datetime = Field(..., description="Timestamp when data was last fetched")
-
-    class Config:
-        from_attributes = True

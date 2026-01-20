@@ -1,47 +1,44 @@
 """Difficulty progression domain models."""
 
-from typing import List
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
 from datetime import datetime
+from typing import List
+
+from sources.domain.models.base import BaseDomainModel
 
 
-class DifficultyPoint(BaseModel):
+@dataclass
+class DifficultyPoint(BaseDomainModel):
     """A data point showing average difficulty at a specific time period."""
 
-    date_month: str = Field(..., description="Month in YYYY-MM format")
-    date_quarter: str = Field(..., description="Quarter in YYYY-Q format")
-    average_rating: float = Field(
-        ..., description="Average rating of problems solved in this period"
-    )
-    problem_count: int = Field(..., description="Number of problems solved in this period")
-    period_start: datetime = Field(..., description="Start timestamp of this period")
-    period_end: datetime = Field(..., description="End timestamp of this period")
+    date_month: str
+    date_quarter: str
+    average_rating: float
+    problem_count: int
+    period_start: datetime
+    period_end: datetime
 
 
-class GrowthRate(BaseModel):
+@dataclass
+class GrowthRate(BaseDomainModel):
     """Growth rate calculation between two periods."""
 
-    from_period: str = Field(..., description="From period (YYYY-MM or YYYY-Q)")
-    to_period: str = Field(..., description="To period (YYYY-MM or YYYY-Q)")
-    rating_change: float = Field(..., description="Change in average rating")
-    monthly_growth: float = Field(..., description="Average monthly growth rate")
-    months_difference: int = Field(..., description="Number of months between periods")
+    from_period: str
+    to_period: str
+    rating_change: float
+    monthly_growth: float
+    months_difference: int
 
 
-class DifficultyProgression(BaseModel):
+@dataclass
+class DifficultyProgression(BaseDomainModel):
     """Analysis of user's difficulty progression over time."""
 
-    handle: str = Field(..., description="Codeforces handle")
-    monthly_progression: List[DifficultyPoint] = Field(
-        ..., description="Monthly difficulty progression data"
-    )
-    quarterly_progression: List[DifficultyPoint] = Field(
-        ..., description="Quarterly difficulty progression data"
-    )
-    growth_rates: List[GrowthRate] = Field(
-        ..., description="Calculated growth rates between periods"
-    )
-    total_solved: int = Field(..., description="Total number of problems solved")
-    periods_analyzed: int = Field(..., description="Number of time periods analyzed")
-    first_solve_date: datetime = Field(..., description="Date of first problem solved")
-    latest_solve_date: datetime = Field(..., description="Date of most recent problem solved")
+    handle: str
+    monthly_progression: List[DifficultyPoint]
+    quarterly_progression: List[DifficultyPoint]
+    growth_rates: List[GrowthRate]
+    total_solved: int
+    periods_analyzed: int
+    first_solve_date: datetime
+    latest_solve_date: datetime

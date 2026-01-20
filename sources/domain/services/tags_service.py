@@ -1,14 +1,15 @@
 """Tags analysis service for analyzing solved problems by tags."""
 
-from typing import List
 from collections import defaultdict
 from statistics import mean
+from typing import List
 
 from sources.domain.models.codeforces import Submission
-from sources.domain.models.tags import TagsAnalysis, TagInfo
+from sources.domain.models.tags import TagInfo, TagsAnalysis
+from sources.domain.services.base import BaseMetricService
 
 
-class TagsService:
+class TagsService(BaseMetricService):
     """Service for generating tags analytics."""
 
     @staticmethod
@@ -60,23 +61,6 @@ class TagsService:
             overall_average_rating=round(overall_average, 1),
             total_solved=len(unique_solves),
         )
-
-    @staticmethod
-    def _deduplicate_problems(submissions: List[Submission]) -> List[Submission]:
-        """Remove duplicate problem solves, keeping only the first solution."""
-        seen_problems = set()
-        unique_submissions = []
-
-        # Sort by time to ensure earliest solves come first
-        sorted_submissions = sorted(submissions, key=lambda s: s.creation_time_seconds)
-
-        for submission in sorted_submissions:
-            problem_key = submission.problem.problem_key
-            if problem_key not in seen_problems:
-                seen_problems.add(problem_key)
-                unique_submissions.append(submission)
-
-        return unique_submissions
 
     @staticmethod
     def _analyze_tags(submissions):

@@ -1,7 +1,7 @@
 """Tags analysis service for analyzing solved problems by tags."""
 
 from collections import defaultdict
-from statistics import mean
+from statistics import mean, median
 from typing import List
 
 from sources.domain.models.codeforces import Submission
@@ -28,7 +28,7 @@ class TagsService(BaseMetricService):
         successful_submissions = [s for s in submissions if s.is_solved]
 
         if not successful_submissions:
-            return TagsAnalysis(handle=handle, tags=[], overall_average_rating=0, total_solved=0)
+            return TagsAnalysis(handle=handle, tags=[], overall_average_rating=0, overall_median_rating=0, total_solved=0)
 
         # Remove duplicate problems (keep first solve)
         unique_solves = TagsService._deduplicate_problems(successful_submissions)
@@ -36,17 +36,20 @@ class TagsService(BaseMetricService):
         # Group problems by tags and calculate statistics
         tags_data, overall_ratings = TagsService._analyze_tags(unique_solves)
 
-        # Calculate overall average rating
+        # Calculate overall average and median ratings
         overall_average = mean(overall_ratings) if overall_ratings else 0
+        overall_median = median(overall_ratings) if overall_ratings else 0
 
         # Convert to TagInfo objects
         tags_info = []
         for tag, (tag_ratings, problems) in tags_data.items():
             if tag_ratings:  # Only include tags with rated problems
                 avg_rating = mean(tag_ratings)
+                med_rating = median(tag_ratings)
                 tag_info = TagInfo(
                     tag=tag,
                     average_rating=round(avg_rating, 1),
+                    median_rating=round(med_rating, 1),
                     problem_count=len(tag_ratings),
                     problems=sorted(problems),
                 )
@@ -59,6 +62,7 @@ class TagsService(BaseMetricService):
             handle=handle,
             tags=tags_info,
             overall_average_rating=round(overall_average, 1),
+            overall_median_rating=round(overall_median, 1),
             total_solved=len(unique_solves),
         )
 

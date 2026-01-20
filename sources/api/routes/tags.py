@@ -49,6 +49,7 @@ class TagsController(BaseMetricController):
         response = TagsResponse(
             tags=tags_info,
             overall_average_rating=tags_analysis.overall_average_rating,
+            overall_median_rating=tags_analysis.overall_median_rating,
             total_solved=tags_analysis.total_solved,
             last_updated=self.get_current_timestamp(),
         )
@@ -99,6 +100,7 @@ class TagsController(BaseMetricController):
         response = WeakTagsResponse(
             weak_tags=weak_tags_info,
             overall_average_rating=tags_analysis.overall_average_rating,
+            overall_median_rating=tags_analysis.overall_median_rating,
             total_solved=tags_analysis.total_solved,
             threshold_used=threshold,
             last_updated=self.get_current_timestamp(),

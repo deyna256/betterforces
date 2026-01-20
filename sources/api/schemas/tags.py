@@ -15,6 +15,9 @@ class SimpleTagInfoSchema(BaseAPISchema):
     average_rating: float = Field(
         ..., description="Average rating of all solved problems with this tag"
     )
+    median_rating: float = Field(
+        ..., description="Median rating of all solved problems with this tag"
+    )
     problem_count: int = Field(..., description="Number of solved problems with this tag")
 
 
@@ -31,6 +34,9 @@ class TagsResponse(BaseAPISchema):
     overall_average_rating: float = Field(
         ..., description="Overall average rating of all solved problems"
     )
+    overall_median_rating: float = Field(
+        ..., description="Overall median rating of all solved problems"
+    )
     total_solved: int = Field(..., description="Total number of problems solved")
     last_updated: datetime = Field(..., description="Timestamp when data was last fetched")
 
@@ -43,6 +49,9 @@ class WeakTagsResponse(BaseAPISchema):
     )
     overall_average_rating: float = Field(
         ..., description="Overall average rating of all solved problems"
+    )
+    overall_median_rating: float = Field(
+        ..., description="Overall median rating of all solved problems"
     )
     total_solved: int = Field(..., description="Total number of problems solved")
     threshold_used: int = Field(

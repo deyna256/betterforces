@@ -12,6 +12,7 @@ class TagInfo(BaseDomainModel):
 
     tag: str
     average_rating: float
+    median_rating: float
     problem_count: int
     problems: List[str]
 
@@ -23,6 +24,7 @@ class TagsAnalysis(BaseDomainModel):
     handle: str
     tags: List[TagInfo]
     overall_average_rating: float
+    overall_median_rating: float
     total_solved: int
 
     def get_weak_tags(self, threshold_diff: int = 200) -> List[TagInfo]:

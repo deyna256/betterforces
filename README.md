@@ -105,6 +105,13 @@ Base URL: `/` (no `/api/users/` prefix)
 ### Distribution
 - `GET /rating-distribution/{handle}` - Get rating distribution over time
 
+### Difficulty Distribution
+- `GET /difficulty-distribution/{handle}` - Get problem distribution by difficulty levels (800, 900, 1000...)
+
+### Abandoned Problems
+- `GET /abandoned-problems/by-tags/{handle}` - Get analysis of problems user attempted but never solved, grouped by tags
+- `GET /abandoned-problems/by-ratings/{handle}` - Get analysis of problems user attempted but never solved, grouped by rating bins
+
 ### Tags
 - `GET /tags/{handle}` - Get average rating by tags
 - `GET /tags/{handle}/weak` - Get weak tags analysis

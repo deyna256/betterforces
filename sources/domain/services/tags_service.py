@@ -28,7 +28,13 @@ class TagsService(BaseMetricService):
         successful_submissions = [s for s in submissions if s.is_solved]
 
         if not successful_submissions:
-            return TagsAnalysis(handle=handle, tags=[], overall_average_rating=0, overall_median_rating=0, total_solved=0)
+            return TagsAnalysis(
+                handle=handle,
+                tags=[],
+                overall_average_rating=0,
+                overall_median_rating=0,
+                total_solved=0,
+            )
 
         # Remove duplicate problems (keep first solve)
         unique_solves = TagsService._deduplicate_problems(successful_submissions)

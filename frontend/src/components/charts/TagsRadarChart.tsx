@@ -15,11 +15,10 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 
 interface TagsRadarChartProps {
   tags: TagInfo[];
-  overallMedian: number;
   type: 'all' | 'weak';
 }
 
-export function TagsRadarChart({ tags, overallMedian, type }: TagsRadarChartProps) {
+export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
   // Select top tags for radar (max 10 for readability)
   const topTags =
     type === 'all'
@@ -55,15 +54,6 @@ export function TagsRadarChart({ tags, overallMedian, type }: TagsRadarChartProp
         pointHoverBackgroundColor: '#fff',
         pointHoverBorderColor: 'rgba(0, 200, 83, 1)',
       },
-      {
-        label: 'Overall Median',
-        data: Array(labels.length).fill(overallMedian),
-        backgroundColor: 'rgba(211, 47, 47, 0.1)',
-        borderColor: 'rgba(211, 47, 47, 1)',
-        borderWidth: 2,
-        borderDash: [5, 5],
-        pointRadius: 0,
-      },
     ],
   };
 
@@ -78,8 +68,8 @@ export function TagsRadarChart({ tags, overallMedian, type }: TagsRadarChartProp
         display: true,
         text:
           type === 'all'
-            ? `Tag Performance Radar (Top 10) - Median: ${Math.round(overallMedian)}`
-            : `Weak Tags Radar - Median: ${Math.round(overallMedian)}`,
+            ? 'Tag Performance Radar (Top 10)'
+            : 'Weak Tags Radar',
         font: {
           size: 16,
           weight: 'bold',

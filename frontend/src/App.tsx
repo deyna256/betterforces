@@ -3,15 +3,16 @@ import { Header } from './components/layout/Header';
 import { StatCard } from './components/layout/StatCard';
 import { AbandonedProblemsChart } from './components/charts/AbandonedProblemsChart';
 import { DifficultyDistributionChart } from './components/charts/DifficultyDistributionChart';
+import { DifficultyRadarChart } from './components/charts/DifficultyRadarChart';
 import { TagsChart } from './components/charts/TagsChart';
 import { TagsRadarChart } from './components/charts/TagsRadarChart';
+import { AbandonedProblemsRadarChart } from './components/charts/AbandonedProblemsRadarChart';
 import { codeforcesApi } from './services/api';
 import type {
   AbandonedProblemByTagsResponse,
   AbandonedProblemByRatingsResponse,
   DifficultyDistributionResponse,
   TagsResponse,
-  WeakTagsResponse,
 } from './types/api';
 
 function App() {
@@ -29,26 +30,23 @@ function App() {
     null
   );
   const [tagRatings, setTagRatings] = useState<TagsResponse | null>(null);
-  const [weakTags, setWeakTags] = useState<WeakTagsResponse | null>(null);
 
   const fetchAllData = async (userHandle: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      const [abandonedTags, abandonedRatings, difficulty, tags, weak] = await Promise.all([
+      const [abandonedTags, abandonedRatings, difficulty, tags] = await Promise.all([
         codeforcesApi.getAbandonedProblemsByTags(userHandle),
         codeforcesApi.getAbandonedProblemsByRatings(userHandle),
         codeforcesApi.getDifficultyDistribution(userHandle),
         codeforcesApi.getTagRatings(userHandle),
-        codeforcesApi.getWeakTagRatings(userHandle, 200),
       ]);
 
       setAbandonedByTags(abandonedTags);
       setAbandonedByRatings(abandonedRatings);
       setDifficultyDist(difficulty);
       setTagRatings(tags);
-      setWeakTags(weak);
     } catch (err) {
       setError(
         err instanceof Error
@@ -91,7 +89,7 @@ function App() {
         {!loading && !error && difficultyDist && tagRatings && (
           <>
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <StatCard
                 title="Total Solved"
                 value={difficultyDist.total_solved}
@@ -110,15 +108,9 @@ function App() {
                 description="Never solved after attempts"
                 color="red"
               />
-              <StatCard
-                title="Weak Areas"
-                value={weakTags?.weak_tags.length || 0}
-                description="Tags needing practice"
-                color="orange"
-              />
             </div>
 
-            {/* Difficulty Distribution */}
+            {/* Difficulty Distribution - Bar Chart */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <DifficultyDistributionChart
                 ranges={difficultyDist.ranges}
@@ -126,13 +118,17 @@ function App() {
               />
             </div>
 
+            {/* Difficulty Distribution - Radar Chart */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <DifficultyRadarChart
+                ranges={difficultyDist.ranges}
+                totalSolved={difficultyDist.total_solved}
+              />
+            </div>
+
             {/* Tag Ratings - Radar Chart */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <TagsRadarChart
-                tags={tagRatings.tags}
-                overallMedian={tagRatings.overall_median_rating}
-                type="all"
-              />
+              <TagsRadarChart tags={tagRatings.tags} type="all" />
             </div>
 
             {/* Tag Ratings - Bar Chart */}
@@ -144,37 +140,39 @@ function App() {
               />
             </div>
 
-            {/* Weak Tags - Two Views */}
-            {weakTags && weakTags.weak_tags.length > 0 && (
-              <>
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <TagsRadarChart
-                    tags={weakTags.weak_tags}
-                    overallMedian={weakTags.overall_median_rating}
-                    type="weak"
-                  />
-                </div>
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <TagsChart
-                    tags={weakTags.weak_tags}
-                    overallMedian={weakTags.overall_median_rating}
-                    type="weak"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Abandoned Problems by Tags */}
+            {/* Abandoned Problems by Tags - Bar Chart */}
             {abandonedByTags && abandonedByTags.tags.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                 <AbandonedProblemsChart data={abandonedByTags.tags} type="tags" />
               </div>
             )}
 
-            {/* Abandoned Problems by Ratings */}
+            {/* Abandoned Problems by Tags - Radar Chart */}
+            {abandonedByTags && abandonedByTags.tags.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <AbandonedProblemsRadarChart
+                  data={abandonedByTags.tags}
+                  type="tags"
+                  totalAbandoned={abandonedByTags.total_abandoned_problems}
+                />
+              </div>
+            )}
+
+            {/* Abandoned Problems by Ratings - Bar Chart */}
             {abandonedByRatings && abandonedByRatings.ratings.length > 0 && (
               <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                 <AbandonedProblemsChart data={abandonedByRatings.ratings} type="ratings" />
+              </div>
+            )}
+
+            {/* Abandoned Problems by Ratings - Radar Chart */}
+            {abandonedByRatings && abandonedByRatings.ratings.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <AbandonedProblemsRadarChart
+                  data={abandonedByRatings.ratings}
+                  type="ratings"
+                  totalAbandoned={abandonedByRatings.total_abandoned_problems}
+                />
               </div>
             )}
           </>

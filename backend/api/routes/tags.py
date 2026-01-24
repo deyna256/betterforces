@@ -3,12 +3,14 @@
 from litestar import get
 from litestar.params import Parameter
 from litestar.response import Response
+from litestar.exceptions import HTTPException
 
 from backend.api.deps import codeforces_data_service_dependency, tags_service_dependency
 from backend.api.routes.base import BaseMetricController
 from backend.api.schemas.tags import SimpleTagInfoSchema, TagsResponse, WeakTagsResponse
 from backend.domain.services.tags_service import TagsService
 from backend.services.codeforces_data_service import CodeforcesDataService
+from backend.infrastructure.codeforces_client import UserNotFoundError
 
 
 class TagsController(BaseMetricController):
@@ -39,7 +41,13 @@ class TagsController(BaseMetricController):
         Returns:
             Tag ratings with median and average ratings by tag
         """
-        submissions = await data_service.get_user_submissions(handle)
+        try:
+            submissions = await data_service.get_user_submissions(handle)
+        except UserNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User '{handle}' not found on Codeforces"
+            )
 
         self._validate_submissions_exist(submissions, handle)
 

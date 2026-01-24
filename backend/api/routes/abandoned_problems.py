@@ -2,6 +2,7 @@
 
 from litestar import get
 from litestar.response import Response
+from litestar.exceptions import HTTPException
 
 from backend.api.deps import (
     abandoned_problems_service_dependency,
@@ -16,6 +17,7 @@ from backend.api.schemas.abandoned_problems import (
 )
 from backend.domain.services.abandoned_problems_service import AbandonedProblemsService
 from backend.services.codeforces_data_service import CodeforcesDataService
+from backend.infrastructure.codeforces_client import UserNotFoundError
 
 
 class AbandonedProblemsController(BaseMetricController):
@@ -49,7 +51,13 @@ class AbandonedProblemsController(BaseMetricController):
         Returns:
             Abandoned problems analysis grouped by tags
         """
-        submissions = await data_service.get_user_submissions(handle)
+        try:
+            submissions = await data_service.get_user_submissions(handle)
+        except UserNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User '{handle}' not found on Codeforces"
+            )
 
         self._validate_submissions_exist(submissions, handle)
 
@@ -97,7 +105,13 @@ class AbandonedProblemsController(BaseMetricController):
         Returns:
             Abandoned problems analysis grouped by rating bins
         """
-        submissions = await data_service.get_user_submissions(handle)
+        try:
+            submissions = await data_service.get_user_submissions(handle)
+        except UserNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"User '{handle}' not found on Codeforces"
+            )
 
         self._validate_submissions_exist(submissions, handle)
 

@@ -2,7 +2,7 @@
 
 from typing import List
 
-from backend.infrastructure.codeforces_client import CodeforcesClient
+from backend.infrastructure.codeforces_client import CodeforcesClient, UserNotFoundError
 from backend.domain.models.codeforces import Submission
 
 
@@ -23,4 +23,8 @@ class CodeforcesDataService:
             List of user's submissions
         """
         async with self.codeforces_client as client:
-            return await client.get_user_submissions(handle)
+            try:
+                return await client.get_user_submissions(handle)
+            except UserNotFoundError:
+                # Re-raise to be caught by controllers
+                raise

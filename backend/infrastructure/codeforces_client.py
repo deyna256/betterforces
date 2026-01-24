@@ -10,6 +10,13 @@ from backend.domain.models.codeforces import Submission, Problem, SubmissionStat
 class CodeforcesAPIError(Exception):
     """Exception raised when Codeforces API returns an error."""
 
+    def __init__(self, message: str, status_code: int = None):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class UserNotFoundError(Exception):
+    """Exception raised when user is not found on Codeforces."""
     pass
 
 
@@ -45,15 +52,25 @@ class CodeforcesClient:
 
         try:
             response = await self.http_client.get(url, params={"handle": handle})
-            response.raise_for_status()
 
             data = response.json()
 
-            if data.get("status") != "OK":
-                raise CodeforcesAPIError(f"API returned status: {data.get('status')}")
+            # Check API response status
+            status = data.get("status")
+            result = data.get("result", [])
+            comment = data.get("comment", "")
 
-            raw_submissions = data.get("result", [])
-            return self._parse_submissions(raw_submissions)
+            if status != "OK":
+                # Check for user not found cases
+                if "handle: User with handle" in comment and ("not found" in comment or "does not exist" in comment):
+                    raise UserNotFoundError(f"User '{handle}' not found on Codeforces")
+                # Check for specific error messages indicating user not found
+            if "User with handle" in comment and ("not found" in comment or "does not exist" in comment or "does not have" in comment):
+                raise UserNotFoundError(f"User '{handle}' not found on Codeforces")
+            raise CodeforcesAPIError(f"API returned status: {status}. Comment: {comment}", response.status_code)
+
+            # Empty result means no submissions, but user exists
+            return self._parse_submissions(result)
 
         except httpx.HTTPStatusError as e:
             raise CodeforcesAPIError(f"HTTP error {e.response.status_code}: {e.response.text}")

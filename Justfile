@@ -21,7 +21,7 @@ restart:
 
 # View logs
 logs:
-    docker compose logs -f
+    docker compose logs --tail=250
 
 # Clean up
 clean:

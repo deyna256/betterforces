@@ -63,11 +63,6 @@ class CodeforcesClient:
 
             if status != "OK":
                 # Check for user not found cases
-                if "handle: User with handle" in comment and (
-                    "not found" in comment or "does not exist" in comment
-                ):
-                    raise UserNotFoundError(f"User '{handle}' not found on Codeforces")
-                # Check for specific error messages indicating user not found
                 if "User with handle" in comment and (
                     "not found" in comment
                     or "does not exist" in comment

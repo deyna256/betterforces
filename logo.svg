@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#1a1a2e" rx="30"/>
+
+  <!-- Gradients for bars -->
+  <defs>
+    <linearGradient id="barGradient1" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#3d7dd9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="barGradient2" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#e63946;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff4757;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Bar chart representing analytics (centered and enlarged) -->
+  <g transform="translate(30, 30)">
+    <!-- Bar 1 -->
+    <rect x="0" y="90" width="30" height="50" fill="url(#barGradient1)" rx="6"/>
+
+    <!-- Bar 2 -->
+    <rect x="40" y="60" width="30" height="80" fill="url(#barGradient1)" rx="6"/>
+
+    <!-- Bar 3 -->
+    <rect x="80" y="30" width="30" height="110" fill="url(#barGradient2)" rx="6"/>
+
+    <!-- Bar 4 -->
+    <rect x="120" y="0" width="30" height="140" fill="url(#barGradient2)" rx="6"/>
+  </g>
+
+  <!-- Trend line showing improvement -->
+  <path d="M 42 145 L 77 115 L 117 85 L 157 55"
+        stroke="#ffd700"
+        stroke-width="5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+        filter="url(#glow)"/>
+
+  <!-- Stars for achievements (enlarged) -->
+  <g fill="#ffd700" filter="url(#glow)">
+    <circle cx="157" cy="55" r="6"/>
+    <circle cx="168" cy="48" r="4"/>
+    <circle cx="173" cy="60" r="3"/>
+    <circle cx="165" cy="65" r="2.5"/>
+  </g>
+</svg>

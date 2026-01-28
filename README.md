@@ -1,5 +1,11 @@
 # BetterForces
 
+<div align="center">
+  <img src="logo.svg" alt="BetterForces Logo" width="300"/>
+</div>
+
+<div align="center">
+
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge&logo=python)
 ![Litestar](https://img.shields.io/badge/Litestar-green?style=for-the-badge&logo=lightning)
 ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript)
@@ -7,6 +13,8 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensource)
 
 **API for analyzing Codeforces profiles that provides useful statistics for improving competitive programming skills.**
+
+</div>
 
 ## Project Goal
 

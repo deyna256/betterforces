@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#1a1a2e" rx="6"/>
+
+  <!-- Bar chart representing analytics -->
+  <rect x="5" y="18" width="5" height="9" fill="#4a9eff" rx="1"/>
+  <rect x="11" y="13" width="5" height="14" fill="#4a9eff" rx="1"/>
+  <rect x="17" y="8" width="5" height="19" fill="#ff4757" rx="1"/>
+  <rect x="23" y="3" width="5" height="24" fill="#ff4757" rx="1"/>
+
+  <!-- Trend line showing improvement -->
+  <path d="M 6 21 L 13 16 L 19 10 L 26 4"
+        stroke="#ffd700"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+
+  <!-- Stars for achievements -->
+  <circle cx="26" cy="4" r="2" fill="#ffd700"/>
+  <circle cx="28" cy="6" r="1.2" fill="#ffd700"/>
+</svg>

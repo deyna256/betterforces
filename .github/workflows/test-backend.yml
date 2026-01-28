@@ -26,4 +26,4 @@ jobs:
 
       - name: Run tests
         working-directory: backend
-        run: just test-coverage
+        run: just test

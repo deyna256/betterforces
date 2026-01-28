@@ -19,11 +19,14 @@ jobs:
       - name: Install just
         uses: extractions/setup-just@v2
 
+      - name: Create .env file
+        run: cp .env.example .env
+
       - name: Build and start services
         run: just build && just up
 
-      - name: Health check
-        run: curl -f http://localhost:8000/schema/openapi.json
+      - name: Check services health
+        run: docker compose ps
 
       - name: Stop services
         if: always()

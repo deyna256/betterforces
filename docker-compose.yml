@@ -10,6 +10,12 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/schema/openapi.json"]
+      interval: 7s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
     build:

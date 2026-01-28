@@ -14,6 +14,8 @@
 
 **API for analyzing Codeforces profiles that provides useful statistics for improving competitive programming skills.**
 
+**[🌐 Try Live Demo](https://betterforces.deyna.xyz/)**
+
 </div>
 
 ## Project Goal

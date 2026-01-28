@@ -1,4 +1,4 @@
-name: Backend Tests
+name: Backend Type Checker
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Run Tests with Coverage
+  typecheck:
+    name: Run Ty Type Checker
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,6 @@ jobs:
         working-directory: backend
         run: just install
 
-      - name: Run tests
+      - name: Run type checker
         working-directory: backend
-        run: just test-coverage
+        run: just typecheck

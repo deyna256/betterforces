@@ -1,7 +1,7 @@
 import datetime
 import pytest
 
-from typing import Callable, List, Optional
+from typing import Callable, List
 from unittest.mock import Mock
 
 from backend.domain.models.codeforces import Problem, Submission, SubmissionStatus
@@ -18,13 +18,12 @@ def mock_submission() -> Callable[..., Mock]:
         contest_id: int,
         index: str,
         name: str,
-        rating: Optional[int],
+        rating: int | None,
         tags: List[str],
         verdict: SubmissionStatus = SubmissionStatus.OK,
         programming_language: str = "Python 3",
         is_solved: bool = False,
     ) -> Mock:
-        # Mock Problem
         mock_problem = Mock(spec=Problem)
         mock_problem.contest_id = contest_id
         mock_problem.index = index
@@ -33,7 +32,6 @@ def mock_submission() -> Callable[..., Mock]:
         mock_problem.tags = tags
         mock_problem.problem_key = f"{contest_id}{index}"
 
-        # Mock Submission
         mock_submission = Mock(spec=Submission)
         mock_submission.contest_id = contest_id
         mock_submission.creation_time_seconds = datetime.datetime.now().second

@@ -1,3 +1,5 @@
+"""Unit tests for the Abandoned Problems statistics aggregation."""
+
 import pytest
 
 from backend.domain.services.abandoned_problems_service import AbandonedProblemsService
@@ -18,7 +20,6 @@ def test_aggregation_by_tags(mock_submission, problems_tags, expected_counts) ->
     """Test if abandoned problem are correctly grouped by tags."""
 
     submissions = []
-
     for i, tags in enumerate(problems_tags):
         submissions.append(
             mock_submission(
@@ -32,10 +33,8 @@ def test_aggregation_by_tags(mock_submission, problems_tags, expected_counts) ->
         )
 
     analysis = AbandonedProblemsService.analyze_abandoned_problems("test user", submissions)
-
     for tag, count in expected_counts.items():
         stat = next(s for s in analysis.tags_stats if s.tag == tag)
-
         assert stat.problem_count == count
 
 
@@ -62,10 +61,8 @@ def test_aggregation_by_rating_binning(mock_submission, ratings, expected_bins) 
         )
 
     analysis = AbandonedProblemsService.analyze_abandoned_problems("test user", submissions)
-
     for rating_bin, count in expected_bins.items():
         stat = next(s for s in analysis.ratings_stats if s.rating == rating_bin)
-
         assert stat.problem_count == count
 
 
@@ -85,6 +82,5 @@ def test_unrated_problems_skipped_in_rating_stats(mock_submission, invalid_ratin
     ]
 
     analysis = AbandonedProblemsService.analyze_abandoned_problems("test user", submissions)
-
     assert analysis.total_abandoned == 1
     assert len(analysis.ratings_stats) == 0

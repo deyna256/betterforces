@@ -1,3 +1,5 @@
+"""Unit tests for the Abandoned Problems Analysis Service."""
+
 import pytest
 
 from backend.domain.services.abandoned_problems_service import AbandonedProblemsService

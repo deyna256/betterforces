@@ -1,4 +1,9 @@
-"""Unit tests for the Abandoned Problems Analysis Service."""
+"""
+Unit tests for the Abandoned Problems Analysis Service.
+
+This module verifies that the service correctly identifies abandoned problems (attempted
+but never solved) and handles edge cases like empty history.
+"""
 
 import pytest
 
@@ -6,7 +11,10 @@ from backend.domain.services.abandoned_problems_service import AbandonedProblems
 
 
 def test_empty_submissions() -> None:
-    """Test with no submissions returns empty stats."""
+    """
+    Verifies that analyzing an empty list of submissions results in a valid,
+    empty statistics object with zero counts.
+    """
 
     analysis = AbandonedProblemsService.analyze_abandoned_problems("test user", [])
 
@@ -29,7 +37,10 @@ def test_empty_submissions() -> None:
 def test_identify_abandoned_scenarios(
     mock_submission, submission_history, expected_abandoned_count
 ) -> None:
-    """Test various scenarios for identifying abandoned problems."""
+    """
+    Verifies that problems are marked as abandoned only if they were attempted
+    but never solved. Problems solved eventually or immediately are ignored.
+    """
 
     submissions = []
     for i, is_solved in submission_history:
@@ -51,7 +62,10 @@ def test_identify_abandoned_scenarios(
 
 @pytest.mark.parametrize("fail_count", [1, 3, 5, 10])
 def test_failed_attempts_count(mock_submission, fail_count) -> None:
-    """Test that the number of failed attempts is counted correctly."""
+    """
+    Verifies that the service correctly counts the total number of failed
+    submissions for a specific abandoned problem.
+    """
 
     submissions = [
         mock_submission(

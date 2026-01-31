@@ -25,7 +25,7 @@ class TagsService(BaseMetricService):
             TagsAnalysis with analyzed data
         """
         # Filter successful submissions
-        successful_submissions = [s for s in submissions if s.is_solved]
+        successful_submissions = TagsService._filter_successful_submissions(submissions)
 
         if not successful_submissions:
             return TagsAnalysis(

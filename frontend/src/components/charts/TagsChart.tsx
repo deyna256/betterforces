@@ -23,7 +23,7 @@ ChartJS.register(
 interface TagsChartProps {
   tags: TagInfo[];
   overallMedian: number;
-  type: 'all' | 'weak';
+  type: 'all';
 }
 
 export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {

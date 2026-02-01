@@ -1,5 +1,12 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   backend:
+    logging: *logging
     build: ./backend
     ports:
       - "8000:8000"
@@ -26,12 +33,14 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    logging: *logging
 
   redis:
     image: redis:7-alpine
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    logging: *logging
 
   worker:
     build:
@@ -44,6 +53,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend:/app/backend:ro
+    logging: *logging
 
 volumes:
   redis_data:

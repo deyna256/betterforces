@@ -1,6 +1,7 @@
 """Difficulty distribution API routes."""
 
 import asyncio
+from typing import Union
 
 from litestar import get
 from litestar.params import Parameter
@@ -19,6 +20,7 @@ from backend.api.schemas.difficulty_distribution import (
     DifficultyDistributionResponse,
     RatingRangeSchema,
 )
+from backend.api.schemas.common import AsyncTaskResponse
 from backend.domain.services.difficulty_distribution_service import DifficultyDistributionService
 from backend.services.codeforces_data_service import CodeforcesDataService
 from backend.infrastructure.codeforces_client import UserNotFoundError
@@ -51,7 +53,7 @@ class DifficultyDistributionController(BaseMetricController):
             default=False,
             description="If true, force refresh even if stale data is available",
         ),
-    ) -> Response[DifficultyDistributionResponse]:
+    ) -> Union[Response[DifficultyDistributionResponse], Response[AsyncTaskResponse]]:
         """
         Get user's problem-solving distribution by difficulty levels.
 
@@ -125,10 +127,12 @@ class DifficultyDistributionController(BaseMetricController):
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
-                content={"status": "processing", "task_id": task_id, "retry_after": 2},
+                content=AsyncTaskResponse(
+                    status="processing", task_id=task_id, retry_after=2
+                ).model_dump(),
                 status_code=202,
             )
-        except Exception as e:
+        except Exception:
             # Fallback: try fetching directly if queue fails
             try:
                 submissions = await data_service.get_user_submissions(handle)

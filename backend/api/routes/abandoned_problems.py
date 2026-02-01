@@ -1,6 +1,7 @@
 """Abandoned problems API routes."""
 
 import asyncio
+from typing import Union
 
 from litestar import get
 from litestar.params import Parameter
@@ -21,6 +22,7 @@ from backend.api.schemas.abandoned_problems import (
     RatingAbandonedSchema,
     TagAbandonedSchema,
 )
+from backend.api.schemas.common import AsyncTaskResponse
 from backend.domain.services.abandoned_problems_service import AbandonedProblemsService
 from backend.services.codeforces_data_service import CodeforcesDataService
 from backend.infrastructure.codeforces_client import UserNotFoundError
@@ -53,7 +55,7 @@ class AbandonedProblemsController(BaseMetricController):
             default=False,
             description="If true, force refresh even if stale data is available",
         ),
-    ) -> Response[AbandonedProblemByTagsResponse]:
+    ) -> Union[Response[AbandonedProblemByTagsResponse], Response[AsyncTaskResponse]]:
         """
         Get problems that user attempted but never solved, grouped by tags.
 
@@ -128,7 +130,9 @@ class AbandonedProblemsController(BaseMetricController):
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
-                content={"status": "processing", "task_id": task_id, "retry_after": 2},
+                content=AsyncTaskResponse(
+                    status="processing", task_id=task_id, retry_after=2
+                ).model_dump(),
                 status_code=202,
             )
         except Exception:
@@ -181,7 +185,7 @@ class AbandonedProblemsController(BaseMetricController):
             default=False,
             description="If true, force refresh even if stale data is available",
         ),
-    ) -> Response[AbandonedProblemByRatingsResponse]:
+    ) -> Union[Response[AbandonedProblemByRatingsResponse], Response[AsyncTaskResponse]]:
         """
         Get problems that user attempted but never solved, grouped by rating bins.
 
@@ -256,7 +260,9 @@ class AbandonedProblemsController(BaseMetricController):
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
-                content={"status": "processing", "task_id": task_id, "retry_after": 2},
+                content=AsyncTaskResponse(
+                    status="processing", task_id=task_id, retry_after=2
+                ).model_dump(),
                 status_code=202,
             )
         except Exception:

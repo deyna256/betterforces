@@ -10,7 +10,6 @@ from typing import Optional
 
 from redis.asyncio import Redis
 
-from backend.config import settings
 from backend.infrastructure.codeforces_client import CodeforcesClient, UserNotFoundError
 from backend.infrastructure.redis_client import create_redis_client
 
@@ -111,6 +110,10 @@ class Worker:
         Args:
             task_data: Task data from queue
         """
+        assert self.redis is not None, "Redis client not initialized"
+        assert self.cf_client is not None, "Codeforces client not initialized"
+        assert self.rate_limiter is not None, "Rate limiter not initialized"
+
         task_id = task_data.get("task_id")
         handle = task_data.get("handle")
 
@@ -186,12 +189,14 @@ class Worker:
 
         Continuously polls Redis queue for tasks.
         """
+        assert self.redis is not None, "Redis client not initialized"
+
         logger.info("Worker started. Waiting for tasks...")
 
         while self.running:
             try:
                 # BLPOP: blocking left pop with timeout
-                result = await self.redis.blpop(self.queue_key, timeout=5)
+                result = await self.redis.blpop([self.queue_key], timeout=5)  # type: ignore[misc]
 
                 if result:
                     _, task_json = result

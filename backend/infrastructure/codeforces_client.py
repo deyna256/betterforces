@@ -36,6 +36,10 @@ class CodeforcesClient:
         """Async context manager exit."""
         await self.http_client.aclose()
 
+    async def close(self) -> None:
+        """Close the HTTP client."""
+        await self.http_client.aclose()
+
     async def get_user_submissions(self, handle: str) -> List[Submission]:
         """
         Fetch all submissions for a user.

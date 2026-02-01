@@ -73,7 +73,7 @@ class TaskQueue:
         task_data = {"task_id": task_id, "handle": handle, "timestamp": time.time()}
 
         # Add to queue
-        await self.redis.rpush(self.queue_key, json.dumps(task_data))
+        await self.redis.rpush(self.queue_key, json.dumps(task_data))  # type: ignore[misc]
 
         # Set initial status
         await self.redis.setex(f"task:{task_id}:status", 300, "processing")

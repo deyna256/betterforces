@@ -1,6 +1,7 @@
 """Tags API routes."""
 
 import asyncio
+from typing import Union
 
 from litestar import get
 from litestar.params import Parameter
@@ -16,6 +17,7 @@ from backend.api.deps import (
 )
 from backend.api.routes.base import BaseMetricController
 from backend.api.schemas.tags import SimpleTagInfoSchema, TagsResponse, WeakTagsResponse
+from backend.api.schemas.common import AsyncTaskResponse
 from backend.domain.services.tags_service import TagsService
 from backend.services.codeforces_data_service import CodeforcesDataService
 from backend.infrastructure.codeforces_client import UserNotFoundError
@@ -48,7 +50,7 @@ class TagsController(BaseMetricController):
             default=False,
             description="If true, force refresh even if stale data is available",
         ),
-    ) -> Response[TagsResponse]:
+    ) -> Union[Response[TagsResponse], Response[AsyncTaskResponse]]:
         """
         Get user's average and median rating by problem tags.
 
@@ -113,7 +115,9 @@ class TagsController(BaseMetricController):
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
-                content={"status": "processing", "task_id": task_id, "retry_after": 2},
+                content=AsyncTaskResponse(
+                    status="processing", task_id=task_id, retry_after=2
+                ).model_dump(),
                 status_code=202,
             )
         except Exception:
@@ -167,7 +171,7 @@ class TagsController(BaseMetricController):
             default=False,
             description="If true, force refresh even if stale data is available",
         ),
-    ) -> Response[WeakTagsResponse]:
+    ) -> Union[Response[WeakTagsResponse], Response[AsyncTaskResponse]]:
         """
         Get user's weak tag ratings - topics where median rating is significantly lower.
 
@@ -238,7 +242,9 @@ class TagsController(BaseMetricController):
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
-                content={"status": "processing", "task_id": task_id, "retry_after": 2},
+                content=AsyncTaskResponse(
+                    status="processing", task_id=task_id, retry_after=2
+                ).model_dump(),
                 status_code=202,
             )
         except Exception:

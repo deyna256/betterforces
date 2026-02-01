@@ -22,3 +22,11 @@ class ErrorResponse(BaseModel):
     error: str
     message: Optional[str] = None
     code: Optional[str] = None
+
+
+class AsyncTaskResponse(BaseModel):
+    """Response schema for async task processing (202 Accepted)."""
+
+    status: str  # "processing"
+    task_id: str
+    retry_after: int  # Seconds to wait before retrying

@@ -63,5 +63,5 @@ difficulty_distribution_service_dependency = Provide(
 )
 tags_service_dependency = Provide(get_tags_service, sync_to_thread=False)
 request_metadata_dependency = Provide(get_request_metadata, sync_to_thread=False)
-redis_dependency = Provide(get_redis, sync_to_thread=False)
-task_queue_dependency = Provide(get_task_queue, sync_to_thread=False)
+redis_dependency = Provide(get_redis)
+task_queue_dependency = Provide(get_task_queue)

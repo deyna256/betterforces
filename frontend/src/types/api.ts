@@ -50,3 +50,24 @@ export interface TagsResponse {
   last_updated: string;
 }
 
+// Task polling types
+export interface TaskResponse {
+  status: 'processing';
+  task_id: string;
+  retry_after: number;
+}
+
+export interface TaskStatusResponse {
+  status: 'processing' | 'completed' | 'failed';
+  handle?: string;
+  submission_count?: number;
+  message?: string;
+  error?: string;
+}
+
+// Metadata for stale data
+export interface DataMetadata {
+  isStale: boolean;
+  dataAge?: number; // Age in seconds
+}
+

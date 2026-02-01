@@ -11,6 +11,7 @@ import type {
   AbandonedProblemByRatingsResponse,
   DifficultyDistributionResponse,
   TagsResponse,
+  DataMetadata,
 } from './types/api';
 
 function App() {
@@ -29,22 +30,30 @@ function App() {
   );
   const [tagRatings, setTagRatings] = useState<TagsResponse | null>(null);
 
-  const fetchAllData = async (userHandle: string) => {
+  // Metadata state
+  const [dataMetadata, setDataMetadata] = useState<DataMetadata>({
+    isStale: false,
+  });
+
+  const fetchAllData = async (userHandle: string, preferFresh = false) => {
     setLoading(true);
     setError(null);
 
     try {
-      const [abandonedTags, abandonedRatings, difficulty, tags] = await Promise.all([
-        codeforcesApi.getAbandonedProblemsByTags(userHandle),
-        codeforcesApi.getAbandonedProblemsByRatings(userHandle),
-        codeforcesApi.getDifficultyDistribution(userHandle),
-        codeforcesApi.getTagRatings(userHandle),
+      const [abandonedTagsRes, abandonedRatingsRes, difficultyRes, tagsRes] = await Promise.all([
+        codeforcesApi.getAbandonedProblemsByTags(userHandle, preferFresh),
+        codeforcesApi.getAbandonedProblemsByRatings(userHandle, preferFresh),
+        codeforcesApi.getDifficultyDistribution(userHandle, preferFresh),
+        codeforcesApi.getTagRatings(userHandle, preferFresh),
       ]);
 
-      setAbandonedByTags(abandonedTags);
-      setAbandonedByRatings(abandonedRatings);
-      setDifficultyDist(difficulty);
-      setTagRatings(tags);
+      setAbandonedByTags(abandonedTagsRes.data);
+      setAbandonedByRatings(abandonedRatingsRes.data);
+      setDifficultyDist(difficultyRes.data);
+      setTagRatings(tagsRes.data);
+
+      // Use metadata from difficulty distribution (they should all be the same)
+      setDataMetadata(difficultyRes.metadata);
     } catch (err) {
       setError(
         err instanceof Error
@@ -54,6 +63,12 @@ function App() {
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (handle) {
+      fetchAllData(handle, true); // Force fresh data
     }
   };
 
@@ -81,6 +96,41 @@ function App() {
           <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-8">
             <h3 className="text-red-900 font-semibold text-lg mb-2">Error</h3>
             <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Stale Data Warning */}
+        {!loading && !error && dataMetadata.isStale && (
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg
+                className="w-6 h-6 text-yellow-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <h3 className="text-yellow-900 font-semibold text-lg">Data May Be Outdated</h3>
+                <p className="text-yellow-800">
+                  This data is{' '}
+                  {dataMetadata.dataAge
+                    ? `${Math.floor(dataMetadata.dataAge / 3600)} hours old`
+                    : 'older than 4 hours'}
+                  . Fresh data is being fetched in the background.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRefresh}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg whitespace-nowrap"
+            >
+              Refresh Now
+            </button>
           </div>
         )}
 

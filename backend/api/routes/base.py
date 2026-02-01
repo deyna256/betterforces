@@ -1,8 +1,10 @@
+import json
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from litestar import Controller
 from litestar.exceptions import HTTPException
+from redis.asyncio import Redis
 
 from backend.domain.models.codeforces import Submission
 
@@ -68,3 +70,58 @@ class BaseMetricController(Controller):
             Current datetime in UTC timezone
         """
         return datetime.now(timezone.utc)
+
+    @staticmethod
+    async def get_submissions_with_staleness(
+        redis: Redis, handle: str
+    ) -> Tuple[Optional[List[Submission]], int, bool]:
+        """
+        Get submissions from cache with staleness information.
+
+        Args:
+            redis: Redis client instance
+            handle: Codeforces user handle
+
+        Returns:
+            Tuple of (submissions, age_seconds, is_stale)
+            - submissions: List of Submission objects or None if not cached
+            - age_seconds: Age of cache in seconds
+            - is_stale: True if age > 4 hours (14400 seconds)
+        """
+        from backend.domain.models.codeforces import Problem
+
+        cached = await redis.get(f"submissions:{handle}")
+        if not cached:
+            return None, 0, False
+
+        ttl = await redis.ttl(f"submissions:{handle}")
+        if ttl < 0:  # Key exists but has no TTL or expired
+            return None, 0, False
+
+        age = 86400 - ttl  # 24h - remaining TTL = age
+        is_stale = age > 14400  # 4 hours
+
+        # Deserialize submissions
+        submissions_data = json.loads(cached)
+        submissions = []
+        for s in submissions_data:
+            # Convert nested problem dict to Problem object
+            problem_data = s.pop("problem")
+            problem = Problem(**problem_data)
+            submission = Submission(problem=problem, **s)
+            submissions.append(submission)
+
+        return submissions, age, is_stale
+
+    @staticmethod
+    def _cache_headers(max_age: int = 14400) -> dict:
+        """
+        Generate cache headers.
+
+        Args:
+            max_age: Cache max age in seconds
+
+        Returns:
+            Dictionary with Cache-Control header
+        """
+        return {"Cache-Control": f"public, max-age={max_age}"}

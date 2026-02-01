@@ -33,5 +33,17 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  worker:
+    build:
+      context: ./backend
+      dockerfile: worker/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app/backend:ro
+
 volumes:
   redis_data:

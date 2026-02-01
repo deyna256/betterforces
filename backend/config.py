@@ -24,6 +24,24 @@ class Settings(BaseSettings):
     cache_ttl: int = Field(
         default=4 * 60 * 60, description="Cache TTL in seconds (4 hours default)"
     )
+    cache_fresh_ttl: int = Field(
+        default=4 * 60 * 60, description="Fresh cache TTL in seconds (4 hours)"
+    )
+    cache_stale_ttl: int = Field(
+        default=24 * 60 * 60, description="Stale cache TTL in seconds (24 hours)"
+    )
+
+    # Worker settings
+    worker_rate_limit: int = Field(
+        default=5, description="Worker rate limit (requests per second to Codeforces API)"
+    )
+    worker_queue_key: str = Field(default="fetch_queue", description="Worker queue key")
+
+    # Task settings
+    task_status_ttl: int = Field(default=300, description="Task status TTL in seconds (5 minutes)")
+    pending_task_ttl: int = Field(
+        default=60, description="Pending task lock TTL in seconds (60 seconds)"
+    )
 
     # Rate limiting settings
     rate_limit_requests: int = Field(

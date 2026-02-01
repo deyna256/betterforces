@@ -94,8 +94,37 @@ function App() {
 
         {error && (
           <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-8">
-            <h3 className="text-red-900 font-semibold text-lg mb-2">Error</h3>
-            <p className="text-red-700">{error}</p>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-red-900 font-semibold text-lg mb-2">Error</h3>
+                <p className="text-red-700 mb-4">{error}</p>
+                <button
+                  onClick={() => fetchAllData(handle)}
+                  className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600 transition-colors ml-4"
+                aria-label="Close"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 

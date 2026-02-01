@@ -71,59 +71,97 @@ async function pollTask<T>(taskId: string, maxAttempts = 30): Promise<T> {
   throw new Error('Polling timeout: Task took too long to complete');
 }
 
+// Retry with exponential backoff for rate limit errors
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 2000
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        lastError = new Error(
+          'Service is temporarily overloaded. Please wait a moment and try again.'
+        );
+
+        // If not last attempt, wait and retry
+        if (attempt < maxRetries) {
+          const delay = initialDelay * Math.pow(2, attempt); // 2s, 4s, 8s
+          console.log(`Rate limited (429), retrying in ${delay / 1000}s...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+      }
+      throw error;
+    }
+  }
+
+  throw lastError || new Error('Max retries exceeded');
+}
+
 // Wrapper for API calls with polling support
 async function fetchWithPolling<T>(
   endpoint: string,
   preferFresh = false
 ): Promise<{ data: T; metadata: DataMetadata }> {
-  try {
-    const url = preferFresh ? `${endpoint}?prefer_fresh=true` : endpoint;
-    const response = await apiClient.get<T | TaskResponse>(url);
+  return retryWithBackoff(async () => {
+    try {
+      const url = preferFresh ? `${endpoint}?prefer_fresh=true` : endpoint;
+      const response = await apiClient.get<T | TaskResponse>(url);
 
-    // Check if response is a task (202 Accepted)
-    if (response.status === 202 && isTaskResponse(response.data)) {
-      const taskData = response.data;
+      // Check if response is a task (202 Accepted)
+      if (response.status === 202 && isTaskResponse(response.data)) {
+        const taskData = response.data;
 
-      // Poll until task completes
-      await pollTask(taskData.task_id);
+        // Poll until task completes
+        await pollTask(taskData.task_id);
 
-      // After task completes, fetch the actual data
-      const dataResponse = await apiClient.get<T>(endpoint);
+        // After task completes, fetch the actual data
+        const dataResponse = await apiClient.get<T>(endpoint);
 
-      // Extract metadata from headers
+        // Extract metadata from headers
+        const metadata: DataMetadata = {
+          isStale: dataResponse.headers['x-data-stale'] === 'true',
+          dataAge: dataResponse.headers['x-data-age']
+            ? parseInt(dataResponse.headers['x-data-age'], 10)
+            : undefined,
+        };
+
+        return { data: dataResponse.data, metadata };
+      }
+
+      // Regular response (200 OK)
       const metadata: DataMetadata = {
-        isStale: dataResponse.headers['x-data-stale'] === 'true',
-        dataAge: dataResponse.headers['x-data-age']
-          ? parseInt(dataResponse.headers['x-data-age'], 10)
+        isStale: response.headers['x-data-stale'] === 'true',
+        dataAge: response.headers['x-data-age']
+          ? parseInt(response.headers['x-data-age'], 10)
           : undefined,
       };
 
-      return { data: dataResponse.data, metadata };
-    }
-
-    // Regular response (200 OK)
-    const metadata: DataMetadata = {
-      isStale: response.headers['x-data-stale'] === 'true',
-      dataAge: response.headers['x-data-age']
-        ? parseInt(response.headers['x-data-age'], 10)
-        : undefined,
-    };
-
-    return { data: response.data as T, metadata };
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 404) {
-        throw new Error('User not found on Codeforces');
+      return { data: response.data as T, metadata };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response?.status === 404) {
+          throw new Error('User not found on Codeforces');
+        }
+        if (axiosError.response?.status === 429) {
+          // Let retryWithBackoff handle this
+          throw error;
+        }
+        if (axiosError.response?.status === 503) {
+          throw new Error('Service temporarily unavailable. Please try again later.');
+        }
+        // Generic error with user-friendly message
+        throw new Error('Failed to load data. Please check the handle and try again.');
       }
-      throw new Error(
-        axiosError.response?.data
-          ? JSON.stringify(axiosError.response.data)
-          : axiosError.message
-      );
+      throw error;
     }
-    throw error;
-  }
+  });
 }
 
 export const codeforcesApi = {

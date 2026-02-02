@@ -38,11 +38,6 @@ Track your Codeforces progress, discover knowledge gaps, and improve faster with
 
 Stop guessing where to improve. Start practicing smarter.
 
-### Demo
-
-<!-- Add demo GIF: docs/images/demo.gif -->
-<!-- Shows: User entering handle, data loading, charts appearing -->
-
 ---
 
 ## Quick Start
@@ -71,30 +66,6 @@ That's it! 🚀
 | **Abandoned Problems** | Tracks problems you attempted but never solved, grouped by tags or difficulty |
 | **Smart Caching** | Instant responses with stale-while-revalidate pattern (4-hour fresh cache, 24-hour stale) |
 | **Rate-Limited Worker** | Respects Codeforces API limits (5 req/sec) with async task processing |
-
----
-
-## Screenshots
-
-### Main Dashboard
-<!-- Add screenshot: docs/images/dashboard.png -->
-<!-- Shows: Full dashboard with all analytics -->
-
-### Difficulty Distribution Chart
-<!-- Add screenshot: docs/images/difficulty-distribution.png -->
-<!-- Shows: Bar chart with problem count by rating (800-3000) -->
-
-### Tag Analysis Radar
-<!-- Add screenshot: docs/images/tag-radar.png -->
-<!-- Shows: Radar chart with performance across different topics -->
-
-### Weak Topics Detection
-<!-- Add screenshot: docs/images/weak-topics.png -->
-<!-- Shows: List of weak topics with statistics -->
-
-### Abandoned Problems
-<!-- Add screenshot: docs/images/abandoned-problems.png -->
-<!-- Shows: Problems attempted but not solved, grouped by tags -->
 
 ---
 

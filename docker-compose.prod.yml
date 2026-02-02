@@ -1,0 +1,19 @@
+# Production overrides for nginx-proxy-manager integration
+# Usage: ./deploy-prod.sh
+
+services:
+  backend:
+    networks:
+      - default
+      - betterforces-network
+    ports: []  # Remove port mapping - access only via nginx-proxy-manager
+
+  frontend:
+    networks:
+      - default
+      - betterforces-network
+    ports: []  # Remove port mapping - access only via nginx-proxy-manager
+
+networks:
+  betterforces-network:
+    external: true

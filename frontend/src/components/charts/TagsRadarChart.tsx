@@ -15,7 +15,7 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 
 interface TagsRadarChartProps {
   tags: TagInfo[];
-  type: 'all' | 'weak';
+  type: 'all';
 }
 
 export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {

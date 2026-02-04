@@ -1,19 +1,8 @@
-"""
-Unit tests for the Tags Service analyze_tags() method.
-
-This module verifies that the service correctly analyzes solved problems by tags,
-calculates statistics, and handles edge cases like empty submissions and problems without ratings.
-"""
-
 from backend.domain.models.codeforces import SubmissionStatus
 from backend.domain.services.tags_service import TagsService
 
 
-def test_empty_submissions() -> None:
-    """
-    Verifies that analyzing an empty list of submissions results in a valid,
-    empty analysis object with zero counts.
-    """
+def test_returns_zero_counts_and_ratings_when_no_submissions() -> None:
     analysis = TagsService.analyze_tags("test_user", [])
 
     assert analysis.handle == "test_user"
@@ -23,11 +12,7 @@ def test_empty_submissions() -> None:
     assert analysis.overall_median_rating == 0
 
 
-def test_no_successful_submissions(mock_submission) -> None:
-    """
-    Verifies that only failed submissions result in an empty analysis,
-    since no problems were successfully solved.
-    """
+def test_no_successful_submissions_and_returns_zero_stats(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -58,11 +43,7 @@ def test_no_successful_submissions(mock_submission) -> None:
     assert analysis.overall_median_rating == 0
 
 
-def test_problems_without_ratings(mock_submission) -> None:
-    """
-    Verifies that problems without ratings are counted in total_solved
-    but don't contribute to tag statistics (tags list is empty).
-    """
+def test_returns_zero_rating_stats_when_all_ratings_are_missing(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100, index="A", name="Problem A", rating=None, tags=["math"], is_solved=True
@@ -86,11 +67,7 @@ def test_problems_without_ratings(mock_submission) -> None:
     assert analysis.overall_median_rating == 0
 
 
-def test_problems_without_tags(mock_submission) -> None:
-    """
-    Verifies that problems with ratings but no tags are counted and contribute
-    to overall statistics, but the tags list remains empty.
-    """
+def test_does_not_create_tag_stats_when_solved_problems_have_no_tags(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100, index="A", name="Problem A", rating=800, tags=[], is_solved=True
@@ -109,11 +86,7 @@ def test_problems_without_tags(mock_submission) -> None:
     assert analysis.overall_median_rating == 1000.0
 
 
-def test_multiple_solves_same_problem(mock_submission) -> None:
-    """
-    Verifies that when the same problem is solved multiple times,
-    it's only counted once in statistics (deduplication works).
-    """
+def test_counts_problem_only_once_when_solved_multiple_times(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -149,11 +122,7 @@ def test_multiple_solves_same_problem(mock_submission) -> None:
     assert analysis.tags[0].problem_count == 1
 
 
-def test_mixed_duplicates_and_unique(mock_submission) -> None:
-    """
-    Verifies that deduplication works correctly when there's a mix of
-    duplicate and unique problems.
-    """
+def test_counts_only_unique_problems_across_multiple_submissions(mock_submission) -> None:
     submissions = [
         # Problem A solved 3 times
         mock_submission(
@@ -199,10 +168,7 @@ def test_mixed_duplicates_and_unique(mock_submission) -> None:
     assert len(analysis.tags) == 3
 
 
-def test_single_problem_single_tag(mock_submission) -> None:
-    """
-    Verifies correct statistics for a single problem with a single tag.
-    """
+def test_creates_single_tag_stat_for_one_solved_problem(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -230,10 +196,7 @@ def test_single_problem_single_tag(mock_submission) -> None:
     assert analysis.overall_median_rating == 1200.0
 
 
-def test_multiple_problems_same_tag(mock_submission) -> None:
-    """
-    Verifies correct statistics when multiple problems share the same tag.
-    """
+def test_aggregates_ratings_and_counts_for_multiple_problems_with_same_tag(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -276,10 +239,7 @@ def test_multiple_problems_same_tag(mock_submission) -> None:
     assert analysis.overall_median_rating == 1000.0
 
 
-def test_single_problem_multiple_tags(mock_submission) -> None:
-    """
-    Verifies that a problem with multiple tags contributes to all of them.
-    """
+def test_creates_stats_for_each_tag_when_problem_has_multiple_tags(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -304,10 +264,7 @@ def test_single_problem_multiple_tags(mock_submission) -> None:
         assert tag_info.problem_count == 1
 
 
-def test_multiple_problems_different_tags(mock_submission) -> None:
-    """
-    Verifies correct statistics when problems have completely different tags.
-    """
+def test_creates_separate_stats_for_each_tag_across_problems(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100, index="A", name="Problem A", rating=800, tags=["math"], is_solved=True
@@ -340,10 +297,7 @@ def test_multiple_problems_different_tags(mock_submission) -> None:
         assert tag_info.problem_count == 1
 
 
-def test_multiple_problems_overlapping_tags(mock_submission) -> None:
-    """
-    Verifies correct statistics when problems have overlapping tags.
-    """
+def test_aggregates_shared_tags_across_multiple_problems(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -396,10 +350,7 @@ def test_multiple_problems_overlapping_tags(mock_submission) -> None:
     assert greedy_tag.problems == ["Problem B"]
 
 
-def test_average_calculation_even_count(mock_submission) -> None:
-    """
-    Verifies correct average and median calculation with an even count of ratings.
-    """
+def test_computes_average_and_median_for_even_number_of_problems(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -442,10 +393,7 @@ def test_average_calculation_even_count(mock_submission) -> None:
     assert tag_info.median_rating == 1100.0  # (1000 + 1200) / 2
 
 
-def test_median_calculation_odd_count(mock_submission) -> None:
-    """
-    Verifies correct median calculation with an odd count of ratings.
-    """
+def test_computes_median_for_odd_number_of_problems(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -480,10 +428,7 @@ def test_median_calculation_odd_count(mock_submission) -> None:
     assert tag_info.median_rating == 1200.0  # Middle value
 
 
-def test_rounding_precision(mock_submission) -> None:
-    """
-    Verifies that ratings are rounded to 1 decimal place.
-    """
+def test_rounds_average_rating_to_expected_precision(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,
@@ -518,10 +463,7 @@ def test_rounding_precision(mock_submission) -> None:
     assert tag_info.median_rating == 900.0
 
 
-def test_tags_sorted_by_problem_count(mock_submission) -> None:
-    """
-    Verifies that tags are sorted by problem count in descending order.
-    """
+def test_sorts_tags_by_problem_count_descending(mock_submission) -> None:
     submissions = [
         # 5 problems with "implementation"
         mock_submission(
@@ -612,10 +554,7 @@ def test_tags_sorted_by_problem_count(mock_submission) -> None:
     assert analysis.tags[2].problem_count == 1
 
 
-def test_problem_names_are_sorted(mock_submission) -> None:
-    """
-    Verifies that problem names within each tag are sorted alphabetically.
-    """
+def test_sorts_problem_names_alphabetically_within_each_tag(mock_submission) -> None:
     submissions = [
         mock_submission(
             contest_id=100,

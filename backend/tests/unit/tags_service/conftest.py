@@ -1,5 +1,3 @@
-"""Shared test fixtures for the Tags Service unit tests."""
-
 import datetime
 from typing import Callable, List
 from unittest.mock import Mock
@@ -11,10 +9,6 @@ from backend.domain.models.codeforces import Problem, Submission, SubmissionStat
 
 @pytest.fixture
 def mock_submission() -> Callable[..., Mock]:
-    """
-    Fixture that returns a factory function to create mock submissions.
-    Usage in tests: mock_submission(contest_id=1, index='A', ...)
-    """
 
     def _create(
         contest_id: int,

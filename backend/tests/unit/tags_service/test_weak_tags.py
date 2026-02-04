@@ -1,17 +1,7 @@
-"""
-Unit tests for the get_weak_tags() method of TagsAnalysis.
-
-This module verifies that weak tags (tags with significantly lower average rating
-than overall average) are correctly identified and filtered based on threshold.
-"""
-
 from backend.domain.models.tags import TagInfo, TagsAnalysis
 
 
-def test_empty_tags_list() -> None:
-    """
-    Verifies that an analysis with no tags returns an empty weak tags list.
-    """
+def test_returns_no_weak_tags_when_tags_list_is_empty() -> None:
     analysis = TagsAnalysis(
         handle="test_user",
         tags=[],
@@ -25,10 +15,7 @@ def test_empty_tags_list() -> None:
     assert weak_tags == []
 
 
-def test_zero_total_solved() -> None:
-    """
-    Verifies that an analysis with zero total solved returns an empty weak tags list.
-    """
+def test_returns_no_weak_tags_when_total_solved_is_zero() -> None:
     analysis = TagsAnalysis(
         handle="test_user",
         tags=[],
@@ -42,11 +29,7 @@ def test_zero_total_solved() -> None:
     assert weak_tags == []
 
 
-def test_no_weak_tags_all_above_threshold() -> None:
-    """
-    Verifies that when all tags are within threshold of overall average,
-    no weak tags are returned.
-    """
+def test_returns_no_weak_tags_when_all_tags_are_within_threshold() -> None:
     analysis = TagsAnalysis(
         handle="test_user",
         tags=[
@@ -83,11 +66,7 @@ def test_no_weak_tags_all_above_threshold() -> None:
     assert weak_tags == []
 
 
-def test_all_tags_are_weak() -> None:
-    """
-    Verifies that when all tags are below the threshold,
-    all are returned as weak tags.
-    """
+def test_returns_all_tags_when_every_tag_is_below_overall_rating_by_threshold() -> None:
     tag1 = TagInfo(
         tag="graphs",
         average_rating=900.0,
@@ -128,10 +107,7 @@ def test_all_tags_are_weak() -> None:
     assert "geometry" in weak_tag_names
 
 
-def test_custom_threshold() -> None:
-    """
-    Verifies that custom threshold values work correctly.
-    """
+def test_applies_custom_threshold_when_filtering_weak_tags() -> None:
     tag_a = TagInfo(
         tag="tag_a",
         average_rating=1250.0,
@@ -163,11 +139,7 @@ def test_custom_threshold() -> None:
     assert weak_tags[0].tag == "tag_b"
 
 
-def test_default_threshold_boundary() -> None:
-    """
-    Verifies the boundary condition for the default threshold (200).
-    Tag with diff=199 is NOT weak, diff=200 IS weak.
-    """
+def test_includes_tags_at_or_below_default_threshold_difference() -> None:
     tag_not_weak = TagInfo(
         tag="just_above",
         average_rating=1001.0,
@@ -207,10 +179,7 @@ def test_default_threshold_boundary() -> None:
     assert "below_threshold" in weak_tag_names  # diff=400
 
 
-def test_sorted_by_difference_descending() -> None:
-    """
-    Verifies that weak tags are sorted by difference (largest gap first).
-    """
+def test_sorts_weak_tags_by_rating_difference_descending() -> None:
     tag_a = TagInfo(
         tag="tag_a",
         average_rating=1100.0,
@@ -251,10 +220,7 @@ def test_sorted_by_difference_descending() -> None:
     assert weak_tags[2].tag == "tag_c"  # diff=300
 
 
-def test_realistic_mixed_strong_and_weak_tags() -> None:
-    """
-    Verifies a realistic scenario with a mix of strong and weak tags.
-    """
+def test_filters_and_sorts_only_weak_tags_from_mixed_strength_tags() -> None:
     implementation = TagInfo(
         tag="implementation",
         average_rating=1400.0,
@@ -303,11 +269,7 @@ def test_realistic_mixed_strong_and_weak_tags() -> None:
     assert weak_tags[1].tag == "graphs"
 
 
-def test_weak_tags_preserve_tag_info() -> None:
-    """
-    Verifies that weak tags returned are the same TagInfo objects
-    with all their original properties intact.
-    """
+def test_preserves_tag_fields_when_returning_weak_tags() -> None:
     graphs = TagInfo(
         tag="graphs",
         average_rating=1000.0,

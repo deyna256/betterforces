@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,6 +12,13 @@ import {
 } from 'chart.js';
 import type { TagInfo } from '../../types/api';
 
+const STANDARD_TAGS = [
+  'implementation', 'math', 'greedy', 'dp', 'data structures',
+  'brute force', 'constructive algorithms', 'sortings', 'binary search',
+  'graphs', 'dfs and similar', 'strings', 'number theory',
+  'geometry', 'trees',
+];
+
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 interface TagsRadarChartProps {
@@ -19,16 +27,25 @@ interface TagsRadarChartProps {
   isDark?: boolean;
 }
 
-export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartProps) {
-  // Select top tags for radar (max 10 for readability)
-  const topTags =
-    type === 'all'
-      ? [...tags].sort((a, b) => b.problem_count - a.problem_count).slice(0, 10)
-      : [...tags].slice(0, 10);
+type RadarMode = 'personal' | 'standard';
 
-  const labels = topTags.map((tag) => tag.tag);
-  const medianRatings = topTags.map((tag) => tag.median_rating);
-  const averageRatings = topTags.map((tag) => tag.average_rating);
+export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartProps) {
+  const [mode, setMode] = useState<RadarMode>('personal');
+
+  const tagMap = new Map(tags.map((t) => [t.tag, t]));
+
+  const displayTags: TagInfo[] =
+    mode === 'standard'
+      ? STANDARD_TAGS.map(
+          (name) => tagMap.get(name) ?? { tag: name, average_rating: 0, median_rating: 0, problem_count: 0 },
+        )
+      : type === 'all'
+        ? [...tags].sort((a, b) => b.problem_count - a.problem_count).slice(0, 10)
+        : [...tags].slice(0, 10);
+
+  const labels = displayTags.map((tag) => tag.tag);
+  const medianRatings = displayTags.map((tag) => tag.median_rating);
+  const averageRatings = displayTags.map((tag) => tag.average_rating);
 
   const textColor = isDark ? '#e5e7eb' : '#374151';
   const gridColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
@@ -73,7 +90,9 @@ export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartPro
         display: true,
         text:
           type === 'all'
-            ? 'Tag Performance Radar (Top 10)'
+            ? mode === 'standard'
+              ? 'Tag Performance Radar (Standard)'
+              : 'Tag Performance Radar (Top 10)'
             : 'Weak Tags Radar',
         color: textColor,
         font: {
@@ -85,7 +104,7 @@ export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartPro
         callbacks: {
           afterLabel: (context) => {
             const index = context.dataIndex;
-            const tag = topTags[index];
+            const tag = displayTags[index];
             return `Problems: ${tag.problem_count}`;
           },
         },
@@ -93,9 +112,10 @@ export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartPro
     },
     scales: {
       r: {
-        beginAtZero: false,
+        min: 0,
+        max: 3000,
         ticks: {
-          stepSize: 200,
+          stepSize: 500,
           color: textColor,
           backdropColor: isDark ? '#1f2937' : '#fff',
         },
@@ -107,8 +127,38 @@ export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartPro
   };
 
   return (
-    <div className="h-[500px] w-full">
-      <Radar data={chartData} options={options} />
+    <div className="w-full">
+      {type === 'all' && (
+        <div className="mb-2 flex justify-center gap-1">
+          <button
+            onClick={() => setMode('personal')}
+            className={`rounded-l-md px-3 py-1 text-sm font-medium transition-colors ${
+              mode === 'personal'
+                ? 'bg-blue-600 text-white'
+                : isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+          >
+            Personal
+          </button>
+          <button
+            onClick={() => setMode('standard')}
+            className={`rounded-r-md px-3 py-1 text-sm font-medium transition-colors ${
+              mode === 'standard'
+                ? 'bg-blue-600 text-white'
+                : isDark
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+            }`}
+          >
+            Standard
+          </button>
+        </div>
+      )}
+      <div className="h-[500px] w-full">
+        <Radar data={chartData} options={options} />
+      </div>
     </div>
   );
 }

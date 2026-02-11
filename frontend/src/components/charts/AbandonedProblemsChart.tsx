@@ -16,15 +16,19 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 interface AbandonedProblemsChartProps {
   data: TagAbandoned[] | RatingAbandoned[];
   type: 'tags' | 'ratings';
+  isDark?: boolean;
 }
 
-export function AbandonedProblemsChart({ data, type }: AbandonedProblemsChartProps) {
+export function AbandonedProblemsChart({ data, type, isDark = false }: AbandonedProblemsChartProps) {
   const sortedData = [...data].sort((a, b) => b.problem_count - a.problem_count).slice(0, 15);
 
   const labels =
     type === 'tags'
       ? (sortedData as TagAbandoned[]).map((item) => item.tag)
       : (sortedData as RatingAbandoned[]).map((item) => item.rating.toString());
+
+  const textColor = isDark ? '#e5e7eb' : '#374151';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
   const chartData = {
     labels,
@@ -52,10 +56,12 @@ export function AbandonedProblemsChart({ data, type }: AbandonedProblemsChartPro
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: { color: textColor },
       },
       title: {
         display: true,
         text: `Abandoned Problems by ${type === 'tags' ? 'Tags' : 'Rating'} (Top 15)`,
+        color: textColor,
         font: {
           size: 16,
           weight: 'bold',
@@ -76,7 +82,13 @@ export function AbandonedProblemsChart({ data, type }: AbandonedProblemsChartPro
         beginAtZero: true,
         ticks: {
           precision: 0,
+          color: textColor,
         },
+        grid: { color: gridColor },
+      },
+      x: {
+        ticks: { color: textColor },
+        grid: { color: gridColor },
       },
     },
   };

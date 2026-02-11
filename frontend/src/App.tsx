@@ -6,6 +6,7 @@ import { DifficultyDistributionChart } from './components/charts/DifficultyDistr
 import { TagsChart } from './components/charts/TagsChart';
 import { TagsRadarChart } from './components/charts/TagsRadarChart';
 import { codeforcesApi } from './services/api';
+import { useTheme } from './hooks/useTheme';
 import type {
   AbandonedProblemByTagsResponse,
   AbandonedProblemByRatingsResponse,
@@ -15,6 +16,9 @@ import type {
 } from './types/api';
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [handle, setHandle] = useState<string>('tourist');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,25 +83,25 @@ function App() {
   }, [handle]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header handle={handle} onHandleChange={setHandle} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header handle={handle} onHandleChange={setHandle} theme={theme} onToggleTheme={toggleTheme} />
 
       <main className="container mx-auto px-4 py-8">
         {loading && (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-cf-blue mx-auto mb-4"></div>
-              <p className="text-gray-600 text-lg">Loading analytics for {handle}...</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">Loading analytics for {handle}...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-8">
+          <div className="bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-lg p-6 mb-8">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h3 className="text-red-900 font-semibold text-lg mb-2">Error</h3>
-                <p className="text-red-700 mb-4">{error}</p>
+                <h3 className="text-red-900 dark:text-red-300 font-semibold text-lg mb-2">Error</h3>
+                <p className="text-red-700 dark:text-red-400 mb-4">{error}</p>
                 <button
                   onClick={() => fetchAllData(handle)}
                   className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
@@ -107,7 +111,7 @@ function App() {
               </div>
               <button
                 onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-600 transition-colors ml-4"
+                className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 transition-colors ml-4"
                 aria-label="Close"
               >
                 <svg
@@ -130,10 +134,10 @@ function App() {
 
         {/* Stale Data Warning */}
         {!loading && !error && dataMetadata.isStale && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-8 flex items-center justify-between">
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-6 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg
-                className="w-6 h-6 text-yellow-600"
+                className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -144,8 +148,8 @@ function App() {
                 <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <div>
-                <h3 className="text-yellow-900 font-semibold text-lg">Data May Be Outdated</h3>
-                <p className="text-yellow-800">
+                <h3 className="text-yellow-900 dark:text-yellow-300 font-semibold text-lg">Data May Be Outdated</h3>
+                <p className="text-yellow-800 dark:text-yellow-400">
                   This data is{' '}
                   {dataMetadata.dataAge
                     ? `${Math.floor(dataMetadata.dataAge / 3600)} hours old`
@@ -188,45 +192,47 @@ function App() {
             </div>
 
             {/* Difficulty Distribution */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <DifficultyDistributionChart
                 ranges={difficultyDist.ranges}
                 totalSolved={difficultyDist.total_solved}
+                isDark={isDark}
               />
             </div>
 
             {/* Tag Ratings - Radar Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <TagsRadarChart tags={tagRatings.tags} type="all" />
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+              <TagsRadarChart tags={tagRatings.tags} type="all" isDark={isDark} />
             </div>
 
             {/* Tag Ratings - Bar Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <TagsChart
                 tags={tagRatings.tags}
                 overallMedian={tagRatings.overall_median_rating}
                 type="all"
+                isDark={isDark}
               />
             </div>
 
             {/* Abandoned Problems by Tags */}
             {abandonedByTags && abandonedByTags.tags.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <AbandonedProblemsChart data={abandonedByTags.tags} type="tags" />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+                <AbandonedProblemsChart data={abandonedByTags.tags} type="tags" isDark={isDark} />
               </div>
             )}
 
             {/* Abandoned Problems by Ratings */}
             {abandonedByRatings && abandonedByRatings.ratings.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <AbandonedProblemsChart data={abandonedByRatings.ratings} type="ratings" />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+                <AbandonedProblemsChart data={abandonedByRatings.ratings} type="ratings" isDark={isDark} />
               </div>
             )}
           </>
         )}
       </main>
 
-      <footer className="bg-gray-800 text-white py-6 mt-12">
+      <footer className="bg-gray-800 dark:bg-gray-950 text-white py-6 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-300">
             <a

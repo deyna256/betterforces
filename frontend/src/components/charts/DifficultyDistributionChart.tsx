@@ -16,11 +16,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 interface DifficultyDistributionChartProps {
   ranges: RatingRange[];
   totalSolved: number;
+  isDark?: boolean;
 }
 
 export function DifficultyDistributionChart({
   ranges,
   totalSolved,
+  isDark = false,
 }: DifficultyDistributionChartProps) {
   const sortedRanges = [...ranges].sort((a, b) => a.rating - b.rating);
 
@@ -29,6 +31,9 @@ export function DifficultyDistributionChart({
   const percentages = sortedRanges.map(
     (range) => ((range.problem_count / totalSolved) * 100).toFixed(1)
   );
+
+  const textColor = isDark ? '#e5e7eb' : '#374151';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
   const chartData = {
     labels,
@@ -49,10 +54,12 @@ export function DifficultyDistributionChart({
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: { color: textColor },
       },
       title: {
         display: true,
         text: 'Difficulty Distribution',
+        color: textColor,
         font: {
           size: 16,
           weight: 'bold',
@@ -72,16 +79,22 @@ export function DifficultyDistributionChart({
         beginAtZero: true,
         ticks: {
           precision: 0,
+          color: textColor,
         },
+        grid: { color: gridColor },
         title: {
           display: true,
           text: 'Number of Problems',
+          color: textColor,
         },
       },
       x: {
+        ticks: { color: textColor },
+        grid: { color: gridColor },
         title: {
           display: true,
           text: 'Rating',
+          color: textColor,
         },
       },
     },

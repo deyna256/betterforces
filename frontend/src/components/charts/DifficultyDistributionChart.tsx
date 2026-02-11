@@ -13,6 +13,16 @@ import type { RatingRange } from '../../types/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+function getRatingColor(rating: number, isDark: boolean): string {
+  if (rating < 1200) return isDark ? '#A0A0A0' : '#808080';
+  if (rating < 1400) return isDark ? '#00C000' : '#008000';
+  if (rating < 1600) return isDark ? '#10D0C4' : '#03A89E';
+  if (rating < 1900) return isDark ? '#5555FF' : '#0000FF';
+  if (rating < 2100) return isDark ? '#CC55CC' : '#AA00AA';
+  if (rating < 2400) return isDark ? '#FFA040' : '#FF8C00';
+  return isDark ? '#FF4444' : '#FF0000';
+}
+
 interface DifficultyDistributionChartProps {
   ranges: RatingRange[];
   totalSolved: number;
@@ -35,14 +45,23 @@ export function DifficultyDistributionChart({
   const textColor = isDark ? '#e5e7eb' : '#374151';
   const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
+  const backgroundColors = sortedRanges.map((range) => {
+    const hex = getRatingColor(range.rating, isDark);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, 0.7)`;
+  });
+  const borderColors = sortedRanges.map((range) => getRatingColor(range.rating, isDark));
+
   const chartData = {
     labels,
     datasets: [
       {
         label: 'Problems Solved',
         data: counts,
-        backgroundColor: 'rgba(0, 200, 83, 0.7)',
-        borderColor: 'rgba(0, 200, 83, 1)',
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
         borderWidth: 1,
       },
     ],

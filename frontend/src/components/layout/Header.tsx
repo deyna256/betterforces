@@ -35,7 +35,7 @@ export function Header({ handle, onHandleChange, theme, onToggleTheme }: HeaderP
                 name="handle"
                 placeholder="Codeforces handle"
                 defaultValue={handle}
-                className="px-4 py-2 rounded-lg bg-white/90 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
               <button
                 type="submit"

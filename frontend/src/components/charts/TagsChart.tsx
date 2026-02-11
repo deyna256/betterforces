@@ -24,9 +24,10 @@ interface TagsChartProps {
   tags: TagInfo[];
   overallMedian: number;
   type: 'all';
+  isDark?: boolean;
 }
 
-export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {
+export function TagsChart({ tags, overallMedian, type, isDark = false }: TagsChartProps) {
   const sortedTags =
     type === 'all'
       ? [...tags].sort((a, b) => b.problem_count - a.problem_count).slice(0, 15)
@@ -36,6 +37,9 @@ export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {
   const medianRatings = sortedTags.map((tag) => tag.median_rating);
   const averageRatings = sortedTags.map((tag) => tag.average_rating);
   const problemCounts = sortedTags.map((tag) => tag.problem_count);
+
+  const textColor = isDark ? '#e5e7eb' : '#374151';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
   const chartData = {
     labels,
@@ -63,6 +67,7 @@ export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: { color: textColor },
       },
       title: {
         display: true,
@@ -70,6 +75,7 @@ export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {
           type === 'all'
             ? `Tag Ratings (Top 15 by Count) - Overall Median: ${Math.round(overallMedian)}`
             : `Weak Tags (Below Overall Median: ${Math.round(overallMedian)})`,
+        color: textColor,
         font: {
           size: 16,
           weight: 'bold',
@@ -87,10 +93,17 @@ export function TagsChart({ tags, overallMedian, type }: TagsChartProps) {
     scales: {
       y: {
         beginAtZero: false,
+        ticks: { color: textColor },
+        grid: { color: gridColor },
         title: {
           display: true,
           text: 'Rating',
+          color: textColor,
         },
+      },
+      x: {
+        ticks: { color: textColor },
+        grid: { color: gridColor },
       },
     },
   };

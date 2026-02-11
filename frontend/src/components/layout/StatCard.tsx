@@ -14,10 +14,10 @@ const colorClasses = {
 };
 
 const gradientClasses = {
-  blue: 'from-blue-100 to-indigo-200',
-  green: 'from-green-100 to-teal-200',
-  red: 'from-red-100 to-pink-200',
-  orange: 'from-orange-100 to-amber-200',
+  blue: 'from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-900',
+  green: 'from-green-100 to-teal-200 dark:from-green-900 dark:to-teal-900',
+  red: 'from-red-100 to-pink-200 dark:from-red-900 dark:to-pink-900',
+  orange: 'from-orange-100 to-amber-200 dark:from-orange-900 dark:to-amber-900',
 };
 
 export function StatCard({ title, value, description, color = 'blue' }: StatCardProps) {

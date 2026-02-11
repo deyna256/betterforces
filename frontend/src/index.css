@@ -7,7 +7,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: rgba(0, 0, 0, 0.87);
   background-color: #f9fafb;
 
@@ -15,6 +15,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #111827;
 }
 
 body {
@@ -70,6 +76,10 @@ body {
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom, #3b82f6, #6366f1);
   border-radius: 4px;
@@ -94,6 +104,22 @@ body {
 
 .glow-orange {
   box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.dark .glow-blue {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+}
+
+.dark .glow-green {
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.4);
+}
+
+.dark .glow-red {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+}
+
+.dark .glow-orange {
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.4);
 }
 
 /* Hover sound wave effect for better interactivity */

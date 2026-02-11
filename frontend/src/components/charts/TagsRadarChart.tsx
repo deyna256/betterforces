@@ -16,9 +16,10 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 interface TagsRadarChartProps {
   tags: TagInfo[];
   type: 'all';
+  isDark?: boolean;
 }
 
-export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
+export function TagsRadarChart({ tags, type, isDark = false }: TagsRadarChartProps) {
   // Select top tags for radar (max 10 for readability)
   const topTags =
     type === 'all'
@@ -28,6 +29,9 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
   const labels = topTags.map((tag) => tag.tag);
   const medianRatings = topTags.map((tag) => tag.median_rating);
   const averageRatings = topTags.map((tag) => tag.average_rating);
+
+  const textColor = isDark ? '#e5e7eb' : '#374151';
+  const gridColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
 
   const chartData = {
     labels,
@@ -39,8 +43,8 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
         borderColor: 'rgba(26, 115, 232, 1)',
         borderWidth: 2,
         pointBackgroundColor: 'rgba(26, 115, 232, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
+        pointBorderColor: isDark ? '#1f2937' : '#fff',
+        pointHoverBackgroundColor: isDark ? '#1f2937' : '#fff',
         pointHoverBorderColor: 'rgba(26, 115, 232, 1)',
       },
       {
@@ -50,8 +54,8 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
         borderColor: 'rgba(0, 200, 83, 1)',
         borderWidth: 2,
         pointBackgroundColor: 'rgba(0, 200, 83, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
+        pointBorderColor: isDark ? '#1f2937' : '#fff',
+        pointHoverBackgroundColor: isDark ? '#1f2937' : '#fff',
         pointHoverBorderColor: 'rgba(0, 200, 83, 1)',
       },
     ],
@@ -63,6 +67,7 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: { color: textColor },
       },
       title: {
         display: true,
@@ -70,6 +75,7 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
           type === 'all'
             ? 'Tag Performance Radar (Top 10)'
             : 'Weak Tags Radar',
+        color: textColor,
         font: {
           size: 16,
           weight: 'bold',
@@ -90,7 +96,12 @@ export function TagsRadarChart({ tags, type }: TagsRadarChartProps) {
         beginAtZero: false,
         ticks: {
           stepSize: 200,
+          color: textColor,
+          backdropColor: isDark ? '#1f2937' : '#fff',
         },
+        grid: { color: gridColor },
+        angleLines: { color: gridColor },
+        pointLabels: { color: textColor },
       },
     },
   };

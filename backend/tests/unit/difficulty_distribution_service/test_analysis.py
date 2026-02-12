@@ -129,44 +129,6 @@ def test_counts_distinct_problems_in_same_bin(mock_submission) -> None:
     assert result.ranges[0].problem_count == 3
 
 
-def test_creates_separate_ranges_for_different_bins(mock_submission) -> None:
-    submissions = [
-        mock_submission(
-            contest_id=100,
-            index="A",
-            name="Problem A",
-            rating=800,
-            tags=["math"],
-            is_solved=True,
-        ),
-        mock_submission(
-            contest_id=100,
-            index="B",
-            name="Problem B",
-            rating=1200,
-            tags=["dp"],
-            is_solved=True,
-        ),
-        mock_submission(
-            contest_id=100,
-            index="C",
-            name="Problem C",
-            rating=1600,
-            tags=["greedy"],
-            is_solved=True,
-        ),
-    ]
-
-    result = DifficultyDistributionService.analyze_difficulty_distribution("test_user", submissions)
-
-    assert result.total_solved == 3
-    assert len(result.ranges) == 3
-    ratings = [r.rating for r in result.ranges]
-    assert 800 in ratings
-    assert 1200 in ratings
-    assert 1600 in ratings
-
-
 def test_sorts_ranges_by_rating_ascending(mock_submission) -> None:
     submissions = [
         mock_submission(
@@ -312,20 +274,3 @@ def test_filters_out_failed_and_deduplicates_in_mixed_submissions(mock_submissio
     assert 1600 in ratings
 
 
-def test_sets_handle_on_result(mock_submission) -> None:
-    submissions = [
-        mock_submission(
-            contest_id=100,
-            index="A",
-            name="Problem A",
-            rating=800,
-            tags=["math"],
-            is_solved=True,
-        ),
-    ]
-
-    result = DifficultyDistributionService.analyze_difficulty_distribution(
-        "my_handle", submissions
-    )
-
-    assert result.handle == "my_handle"

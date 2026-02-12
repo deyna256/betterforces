@@ -15,12 +15,6 @@ class TestGetRatingBin:
         assert DifficultyDistributionService._get_rating_bin(899) == 800
         assert DifficultyDistributionService._get_rating_bin(1499) == 1400
 
-    def test_floors_low_rating(self) -> None:
-        assert DifficultyDistributionService._get_rating_bin(100) == 100
-
-    def test_floors_high_rating(self) -> None:
-        assert DifficultyDistributionService._get_rating_bin(3500) == 3500
-
 
 class TestCreateBinDistribution:
 

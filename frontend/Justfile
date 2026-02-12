@@ -1,26 +1,35 @@
+# List all available commands
 default:
     @just --list
 
+# Install npm dependencies
 install:
     npm install
 
+# Run development server
 dev:
     npm run dev
 
+# Build for production
 build:
     npm run build
 
+# Preview production build
 preview:
     npm run preview
 
+# Run ESLint
 lint:
     npm run lint
 
+# Auto-fix linting issues
 lintfix:
     npm run lint -- --fix
 
+# Run TypeScript type checking
 typecheck:
     npx tsc --noEmit
 
+# Clean build artifacts and dependencies
 clean:
     rm -rf dist node_modules .vite

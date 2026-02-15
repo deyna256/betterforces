@@ -1,4 +1,4 @@
-from backend.domain.services import BaseMetricService
+from backend.domain.services import _filter_successful_submissions
 
 
 def test_filter_successful_submissions_happy_path(mock_submission):
@@ -29,12 +29,12 @@ def test_filter_successful_submissions_happy_path(mock_submission):
         is_solved=True,
     )
 
-    result = BaseMetricService._filter_successful_submissions([submission1, submission2, submission3])
+    result = _filter_successful_submissions([submission1, submission2, submission3])
 
     assert result == [submission2, submission3]
 
 def test_filter_successful_submissions_no_submissions(mock_submission):
-    result = BaseMetricService._filter_successful_submissions([])
+    result = _filter_successful_submissions([])
     assert result == []
 
 def test_filter_successful_submissions_only_not_solved_submissions(mock_submission):
@@ -65,7 +65,7 @@ def test_filter_successful_submissions_only_not_solved_submissions(mock_submissi
         is_solved=False,
     )
 
-    result = BaseMetricService._filter_successful_submissions([submission1, submission2, submission3])
+    result = _filter_successful_submissions([submission1, submission2, submission3])
 
     assert result == []
 
@@ -97,7 +97,7 @@ def test_filter_successful_submissions_only_solved_submissions(mock_submission):
         is_solved=True,
     )
 
-    result = BaseMetricService._filter_successful_submissions([submission1, submission2, submission3])
+    result = _filter_successful_submissions([submission1, submission2, submission3])
 
     assert result == [submission1, submission2, submission3]
 
@@ -129,7 +129,7 @@ def test_filter_successful_submissions_one_solved_submission_to_the_problem(mock
         is_solved=False,
     )
 
-    result = BaseMetricService._filter_successful_submissions([submission1, submission2, submission3])
+    result = _filter_successful_submissions([submission1, submission2, submission3])
 
     assert result == [submission2]
 

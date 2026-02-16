@@ -15,31 +15,28 @@ interface TimePeriodSelectorProps {
   isDark: boolean;
 }
 
-export function TimePeriodSelector({ value, onChange, isDark }: TimePeriodSelectorProps) {
+export function TimePeriodSelector({ value, onChange }: TimePeriodSelectorProps) {
   return (
-    <div className="flex justify-center gap-1 mb-8">
-      {OPTIONS.map(({ label, value: optionValue }, index) => {
-        const isActive = value === optionValue;
-        const isFirst = index === 0;
-        const isLast = index === OPTIONS.length - 1;
-        const rounded = isFirst ? 'rounded-l-md' : isLast ? 'rounded-r-md' : '';
+    <div className="flex justify-center mb-8">
+      <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+        {OPTIONS.map(({ label, value: optionValue }) => {
+          const isActive = value === optionValue;
 
-        return (
-          <button
-            key={optionValue}
-            onClick={() => onChange(optionValue)}
-            className={`${rounded} px-3 py-1 text-sm font-medium transition-colors ${
-              isActive
-                ? 'bg-blue-600 text-white'
-                : isDark
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-            }`}
-          >
-            {label}
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={optionValue}
+              onClick={() => onChange(optionValue)}
+              className={`relative px-4 py-1.5 rounded-lg text-sm font-semibold tracking-wide transition-all duration-200 ${
+                isActive
+                  ? 'bg-cf-blue text-white shadow-md shadow-blue-500/25'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-700/60'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

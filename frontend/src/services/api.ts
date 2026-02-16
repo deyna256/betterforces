@@ -7,6 +7,7 @@ import type {
   TaskResponse,
   TaskStatusResponse,
   DataMetadata,
+  TimePeriod,
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -106,11 +107,13 @@ async function retryWithBackoff<T>(
 // Wrapper for API calls with polling support
 async function fetchWithPolling<T>(
   endpoint: string,
-  preferFresh = false
+  params: Record<string, string> = {}
 ): Promise<{ data: T; metadata: DataMetadata }> {
   return retryWithBackoff(async () => {
     try {
-      const url = preferFresh ? `${endpoint}?prefer_fresh=true` : endpoint;
+      const searchParams = new URLSearchParams(params);
+      const queryString = searchParams.toString();
+      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
       const response = await apiClient.get<T | TaskResponse>(url);
 
       // Check if response is a task (202 Accepted)
@@ -164,32 +167,51 @@ async function fetchWithPolling<T>(
   });
 }
 
+function buildParams(preferFresh: boolean, period: TimePeriod): Record<string, string> {
+  const params: Record<string, string> = {};
+  if (preferFresh) params['prefer_fresh'] = 'true';
+  if (period !== 'all_time') params['period'] = period;
+  return params;
+}
+
 export const codeforcesApi = {
   // Abandoned Problems
-  getAbandonedProblemsByTags: async (handle: string, preferFresh = false) => {
+  getAbandonedProblemsByTags: async (
+    handle: string,
+    preferFresh = false,
+    period: TimePeriod = 'all_time'
+  ) => {
     return fetchWithPolling<AbandonedProblemByTagsResponse>(
       `/abandoned-problems/by-tags/${handle}`,
-      preferFresh
+      buildParams(preferFresh, period)
     );
   },
 
-  getAbandonedProblemsByRatings: async (handle: string, preferFresh = false) => {
+  getAbandonedProblemsByRatings: async (
+    handle: string,
+    preferFresh = false,
+    period: TimePeriod = 'all_time'
+  ) => {
     return fetchWithPolling<AbandonedProblemByRatingsResponse>(
       `/abandoned-problems/by-ratings/${handle}`,
-      preferFresh
+      buildParams(preferFresh, period)
     );
   },
 
   // Difficulty Distribution
-  getDifficultyDistribution: async (handle: string, preferFresh = false) => {
+  getDifficultyDistribution: async (
+    handle: string,
+    preferFresh = false,
+    period: TimePeriod = 'all_time'
+  ) => {
     return fetchWithPolling<DifficultyDistributionResponse>(
       `/difficulty-distribution/${handle}`,
-      preferFresh
+      buildParams(preferFresh, period)
     );
   },
 
   // Tags
-  getTagRatings: async (handle: string, preferFresh = false) => {
-    return fetchWithPolling<TagsResponse>(`/tag-ratings/${handle}`, preferFresh);
+  getTagRatings: async (handle: string, preferFresh = false, period: TimePeriod = 'all_time') => {
+    return fetchWithPolling<TagsResponse>(`/tag-ratings/${handle}`, buildParams(preferFresh, period));
   },
 };

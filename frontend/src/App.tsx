@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
+import { TimePeriodSelector } from './components/layout/TimePeriodSelector';
 import { StatCard } from './components/layout/StatCard';
 import { AbandonedProblemsChart } from './components/charts/AbandonedProblemsChart';
 import { DifficultyDistributionChart } from './components/charts/DifficultyDistributionChart';
@@ -13,6 +14,7 @@ import type {
   DifficultyDistributionResponse,
   TagsResponse,
   DataMetadata,
+  TimePeriod,
 } from './types/api';
 
 function App() {
@@ -20,6 +22,7 @@ function App() {
   const isDark = theme === 'dark';
 
   const [handle, setHandle] = useState<string>('tourist');
+  const [period, setPeriod] = useState<TimePeriod>('all_time');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,16 +42,20 @@ function App() {
     isStale: false,
   });
 
-  const fetchAllData = async (userHandle: string, preferFresh = false) => {
+  const fetchAllData = async (
+    userHandle: string,
+    preferFresh = false,
+    selectedPeriod: TimePeriod = period
+  ) => {
     setLoading(true);
     setError(null);
 
     try {
       const [abandonedTagsRes, abandonedRatingsRes, difficultyRes, tagsRes] = await Promise.all([
-        codeforcesApi.getAbandonedProblemsByTags(userHandle, preferFresh),
-        codeforcesApi.getAbandonedProblemsByRatings(userHandle, preferFresh),
-        codeforcesApi.getDifficultyDistribution(userHandle, preferFresh),
-        codeforcesApi.getTagRatings(userHandle, preferFresh),
+        codeforcesApi.getAbandonedProblemsByTags(userHandle, preferFresh, selectedPeriod),
+        codeforcesApi.getAbandonedProblemsByRatings(userHandle, preferFresh, selectedPeriod),
+        codeforcesApi.getDifficultyDistribution(userHandle, preferFresh, selectedPeriod),
+        codeforcesApi.getTagRatings(userHandle, preferFresh, selectedPeriod),
       ]);
 
       setAbandonedByTags(abandonedTagsRes.data);
@@ -78,9 +85,9 @@ function App() {
 
   useEffect(() => {
     if (handle) {
-      fetchAllData(handle);
+      fetchAllData(handle, false, period);
     }
-  }, [handle]);
+  }, [handle, period]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -169,6 +176,8 @@ function App() {
 
         {!loading && !error && difficultyDist && tagRatings && (
           <>
+            <TimePeriodSelector value={period} onChange={setPeriod} isDark={isDark} />
+
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <StatCard

@@ -1,3 +1,5 @@
+export type TimePeriod = 'day' | 'week' | 'month' | 'half_year' | 'year' | 'all_time';
+
 // API Response types based on backend schemas
 
 export interface TagAbandoned {

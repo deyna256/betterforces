@@ -17,33 +17,37 @@ function App() {
   const [handle, setHandle] = useState<string>('tourist');
 
   const difficulty = useMetricData(handle, codeforcesApi.getDifficultyDistribution);
-  const tagRatings = useMetricData(handle, codeforcesApi.getTagRatings);
+  const tagRatingsRadar = useMetricData(handle, codeforcesApi.getTagRatings);
+  const tagRatingsBar = useMetricData(handle, codeforcesApi.getTagRatings);
   const abandonedTags = useMetricData(handle, codeforcesApi.getAbandonedProblemsByTags);
   const abandonedRatings = useMetricData(handle, codeforcesApi.getAbandonedProblemsByRatings);
 
   // Initial load: show full-page spinner only when we have no data yet
   const initialLoading =
-    !difficulty.data && !tagRatings.data && (difficulty.loading || tagRatings.loading);
+    !difficulty.data && !tagRatingsRadar.data && (difficulty.loading || tagRatingsRadar.loading);
 
   // Show first error encountered
-  const error = difficulty.error || tagRatings.error || abandonedTags.error || abandonedRatings.error;
+  const error =
+    difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error;
 
   // Stale if any metric reports stale
   const staleMetadata =
-    [difficulty, tagRatings, abandonedTags, abandonedRatings].find((m) => m.metadata.isStale)
-      ?.metadata ?? null;
+    [difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings].find(
+      (m) => m.metadata.isStale
+    )?.metadata ?? null;
 
   const handleRefresh = () => {
     difficulty.refresh();
-    tagRatings.refresh();
+    tagRatingsRadar.refresh();
+    tagRatingsBar.refresh();
     abandonedTags.refresh();
     abandonedRatings.refresh();
   };
 
   const handleRetry = () => {
-    // Reset periods to trigger fresh fetches
     difficulty.refresh();
-    tagRatings.refresh();
+    tagRatingsRadar.refresh();
+    tagRatingsBar.refresh();
     abandonedTags.refresh();
     abandonedRatings.refresh();
   };
@@ -114,25 +118,28 @@ function App() {
           </div>
         )}
 
-        {!initialLoading && !error && difficulty.data && tagRatings.data && (
+        {!initialLoading && !error && difficulty.data && tagRatingsRadar.data && (
           <>
-            {/* Stats Overview */}
+            {/* Stats Overview — always shows all-time values */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <StatCard
                 title="Total Solved"
-                value={difficulty.data.total_solved}
+                value={difficulty.allTimeData?.total_solved ?? difficulty.data.total_solved}
                 description="Unique problems"
                 color="green"
               />
               <StatCard
                 title="Overall Median Rating"
-                value={Math.round(tagRatings.data.overall_median_rating)}
+                value={Math.round(
+                  tagRatingsRadar.allTimeData?.overall_median_rating ??
+                    tagRatingsRadar.data.overall_median_rating
+                )}
                 description="Across all problems"
                 color="blue"
               />
               <StatCard
                 title="Abandoned Problems"
-                value={abandonedTags.data?.total_abandoned_problems || 0}
+                value={abandonedTags.allTimeData?.total_abandoned_problems ?? abandonedTags.data?.total_abandoned_problems ?? 0}
                 description="Never solved after attempts"
                 color="red"
               />
@@ -144,6 +151,7 @@ function App() {
               period={difficulty.period}
               onPeriodChange={difficulty.setPeriod}
               loading={difficulty.loading}
+              emptyMessage={difficulty.data.total_solved === 0 ? 'No submissions found for this period.' : undefined}
             >
               <DifficultyDistributionChart
                 ranges={difficulty.data.ranges}
@@ -155,47 +163,65 @@ function App() {
             {/* Tag Ratings - Radar Chart */}
             <MetricCard
               title="Tag Ratings — Radar"
-              period={tagRatings.period}
-              onPeriodChange={tagRatings.setPeriod}
-              loading={tagRatings.loading}
+              period={tagRatingsRadar.period}
+              onPeriodChange={tagRatingsRadar.setPeriod}
+              loading={tagRatingsRadar.loading}
+              emptyMessage={
+                tagRatingsRadar.data.tags.length === 0
+                  ? 'No submissions found for this period.'
+                  : tagRatingsRadar.data.tags.length < 3
+                    ? 'Not enough data to build a radar chart (need at least 3 tags).'
+                    : undefined
+              }
             >
-              <TagsRadarChart tags={tagRatings.data.tags} type="all" isDark={isDark} />
+              <TagsRadarChart tags={tagRatingsRadar.data.tags} type="all" isDark={isDark} />
             </MetricCard>
 
             {/* Tag Ratings - Bar Chart */}
             <MetricCard
               title="Tag Ratings — Bar"
-              period={tagRatings.period}
-              onPeriodChange={tagRatings.setPeriod}
-              loading={tagRatings.loading}
+              period={tagRatingsBar.period}
+              onPeriodChange={tagRatingsBar.setPeriod}
+              loading={tagRatingsBar.loading}
+              emptyMessage={
+                tagRatingsBar.data
+                  ? tagRatingsBar.data.tags.length === 0
+                    ? 'No submissions found for this period.'
+                    : undefined
+                  : 'No submissions found for this period.'
+              }
             >
-              <TagsChart
-                tags={tagRatings.data.tags}
-                overallMedian={tagRatings.data.overall_median_rating}
-                type="all"
-                isDark={isDark}
-              />
+              {tagRatingsBar.data && (
+                <TagsChart
+                  tags={tagRatingsBar.data.tags}
+                  overallMedian={tagRatingsBar.data.overall_median_rating}
+                  type="all"
+                  isDark={isDark}
+                />
+              )}
             </MetricCard>
 
             {/* Abandoned Problems by Tags */}
-            {abandonedTags.data && abandonedTags.data.tags.length > 0 && (
+            {abandonedTags.data && (
               <MetricCard
                 title="Abandoned Problems by Tags"
                 period={abandonedTags.period}
                 onPeriodChange={abandonedTags.setPeriod}
                 loading={abandonedTags.loading}
+                emptyMessage={abandonedTags.data.tags.length === 0 ? 'No abandoned problems for this period.' : undefined}
               >
                 <AbandonedProblemsChart data={abandonedTags.data.tags} type="tags" isDark={isDark} />
               </MetricCard>
             )}
 
             {/* Abandoned Problems by Ratings */}
-            {abandonedRatings.data && abandonedRatings.data.ratings.length > 0 && (
+            {abandonedRatings.data && (
               <MetricCard
                 title="Abandoned Problems by Ratings"
                 period={abandonedRatings.period}
                 onPeriodChange={abandonedRatings.setPeriod}
                 loading={abandonedRatings.loading}
+                emptyMessage={abandonedRatings.data.ratings.length === 0 ? 'No abandoned problems for this period.' : undefined}
               >
                 <AbandonedProblemsChart data={abandonedRatings.data.ratings} type="ratings" isDark={isDark} />
               </MetricCard>

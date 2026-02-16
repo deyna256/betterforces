@@ -3,6 +3,7 @@ import type { DataMetadata, TimePeriod } from '../types/api';
 
 interface UseMetricDataReturn<T> {
   data: T | null;
+  allTimeData: T | null;
   period: TimePeriod;
   setPeriod: (p: TimePeriod) => void;
   loading: boolean;
@@ -20,6 +21,7 @@ export function useMetricData<T>(
   ) => Promise<{ data: T; metadata: DataMetadata }>
 ): UseMetricDataReturn<T> {
   const [data, setData] = useState<T | null>(null);
+  const [allTimeData, setAllTimeData] = useState<T | null>(null);
   const [period, setPeriod] = useState<TimePeriod>('all_time');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export function useMetricData<T>(
   useEffect(() => {
     if (prevHandleRef.current !== handle) {
       setData(null);
+      setAllTimeData(null);
       setError(null);
       setMetadata({ isStale: false });
       setPeriod('all_time');
@@ -49,6 +52,9 @@ export function useMetricData<T>(
         if (!cancelled) {
           setData(result.data);
           setMetadata(result.metadata);
+          if (period === 'all_time') {
+            setAllTimeData(result.data);
+          }
         }
       })
       .catch((err) => {
@@ -79,6 +85,9 @@ export function useMetricData<T>(
       .then((result) => {
         setData(result.data);
         setMetadata(result.metadata);
+        if (period === 'all_time') {
+          setAllTimeData(result.data);
+        }
       })
       .catch((err) => {
         setError(
@@ -92,5 +101,5 @@ export function useMetricData<T>(
       });
   }, [handle, period, fetchFn]);
 
-  return { data, period, setPeriod, loading, error, metadata, refresh };
+  return { data, allTimeData, period, setPeriod, loading, error, metadata, refresh };
 }

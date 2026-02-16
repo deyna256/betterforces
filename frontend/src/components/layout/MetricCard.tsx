@@ -6,10 +6,11 @@ interface MetricCardProps {
   period: TimePeriod;
   onPeriodChange: (p: TimePeriod) => void;
   loading: boolean;
+  emptyMessage?: string;
   children: React.ReactNode;
 }
 
-export function MetricCard({ title, period, onPeriodChange, loading, children }: MetricCardProps) {
+export function MetricCard({ title, period, onPeriodChange, loading, emptyMessage, children }: MetricCardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -22,7 +23,13 @@ export function MetricCard({ title, period, onPeriodChange, loading, children }:
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cf-blue"></div>
           </div>
         )}
-        <div className={loading ? 'opacity-50 pointer-events-none' : ''}>{children}</div>
+        {emptyMessage && !loading ? (
+          <div className="flex items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+            <p className="text-sm">{emptyMessage}</p>
+          </div>
+        ) : (
+          <div className={loading ? 'opacity-50 pointer-events-none' : ''}>{children}</div>
+        )}
       </div>
     </div>
   );

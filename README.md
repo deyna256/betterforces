@@ -31,6 +31,7 @@ Track your Codeforces progress, discover knowledge gaps, and improve faster with
 
 **The Solution**: BetterForces automatically analyzes your profile to reveal:
 
+- **Activity Timeline** - Your solving activity over any time period with adaptive detail
 - **Weak Topics** - Which algorithms and data structures you struggle with
 - **Abandoned Problems** - Problems you attempted but never solved (great practice targets!)
 - **Difficulty Progression** - How your skills have grown across rating ranges
@@ -60,12 +61,14 @@ That's it! 🚀
 
 | Feature | Description |
 |---------|-------------|
-| **Difficulty Distribution** | Visualize how many problems you've solved at each rating level (800-3000) |
+| **Daily Activity Timeline** | Track your solving activity over time with adaptive granularity (hours to years) |
+| **Difficulty Distribution** | Visualize how many problems you've solved at each rating level (800-3500) |
 | **Tag Analysis** | See your average and median rating for each topic (DP, graphs, greedy, etc.) |
 | **Weak Topics Detection** | Automatically identifies topics where your performance is below average |
 | **Abandoned Problems** | Tracks problems you attempted but never solved, grouped by tags or difficulty |
+| **Time Period Filtering** | Filter any metric by period (1D, 1W, 1M, 6M, 1Y, All) — no extra API calls |
 | **Smart Caching** | Instant responses with stale-while-revalidate pattern (4-hour fresh cache, 24-hour stale) |
-| **Rate-Limited Worker** | Respects Codeforces API limits (5 req/sec) with async task processing |
+| **Rate-Limited Worker** | Respects Codeforces API limits with async task processing |
 
 ---
 
@@ -92,11 +95,14 @@ That's it! 🚀
 
 All endpoints accept a Codeforces handle as a path parameter:
 
+- `GET /daily-activity/{handle}` - Activity timeline with adaptive granularity
 - `GET /difficulty-distribution/{handle}` - Problem count by rating
 - `GET /tag-ratings/{handle}` - Average/median ratings per topic
 - `GET /tag-ratings/{handle}/weak` - Weak topics with threshold filtering
 - `GET /abandoned-problems/by-tags/{handle}` - Failed attempts grouped by tags
 - `GET /abandoned-problems/by-ratings/{handle}` - Failed attempts grouped by difficulty
+
+All metric endpoints accept an optional `?period=` query param (`day`, `week`, `month`, `half_year`, `year`, `all_time`).
 
 Interactive documentation: **http://localhost:8000/schema/swagger**
 

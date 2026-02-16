@@ -1,6 +1,7 @@
 """Tags API routes."""
 
 import asyncio
+from datetime import datetime, timezone
 from typing import Union
 
 from litestar import get
@@ -16,6 +17,7 @@ from backend.api.deps import (
     task_queue_dependency,
 )
 from backend.api.routes.base import BaseMetricController
+from backend.domain.models.time_period import TimePeriod
 from backend.api.schemas.tags import SimpleTagInfoSchema, TagsResponse, WeakTagsResponse
 from backend.api.schemas.common import AsyncTaskResponse
 from backend.domain.services.tags_service import TagsService
@@ -46,6 +48,10 @@ class TagsController(BaseMetricController):
         tags_service: TagsService,
         redis: Redis,
         task_queue: TaskQueue,
+        period: TimePeriod = Parameter(
+            default=TimePeriod.ALL_TIME,
+            description="Time period to filter submissions by",
+        ),
         prefer_fresh: bool = Parameter(
             default=False,
             description="If true, force refresh even if stale data is available",
@@ -59,6 +65,7 @@ class TagsController(BaseMetricController):
 
         Args:
             handle: Codeforces handle
+            period: Time period to filter submissions by
             prefer_fresh: Force refresh even if stale data exists
 
         Returns:
@@ -70,6 +77,9 @@ class TagsController(BaseMetricController):
 
         # Case 1: Fresh data (< 4 hours)
         if submissions and not is_stale:
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             tags_analysis = tags_service.analyze_tags(handle, submissions)
 
             tags_info = [SimpleTagInfoSchema.model_validate(tag) for tag in tags_analysis.tags]
@@ -87,6 +97,9 @@ class TagsController(BaseMetricController):
         # Case 2: Stale data (4-24 hours) and !prefer_fresh
         if submissions and is_stale and not prefer_fresh:
             # Return stale data immediately
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             tags_analysis = tags_service.analyze_tags(handle, submissions)
 
             tags_info = [SimpleTagInfoSchema.model_validate(tag) for tag in tags_analysis.tags]
@@ -129,6 +142,9 @@ class TagsController(BaseMetricController):
                     status_code=404, detail=f"User '{handle}' not found on Codeforces"
                 )
 
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             self._validate_submissions_exist(submissions, handle)
 
             tags_analysis = tags_service.analyze_tags(handle, submissions)
@@ -167,6 +183,10 @@ class TagsController(BaseMetricController):
             le=1000,
             description="Minimum rating difference to consider a tag rating 'weak'",
         ),
+        period: TimePeriod = Parameter(
+            default=TimePeriod.ALL_TIME,
+            description="Time period to filter submissions by",
+        ),
         prefer_fresh: bool = Parameter(
             default=False,
             description="If true, force refresh even if stale data is available",
@@ -180,6 +200,7 @@ class TagsController(BaseMetricController):
         Args:
             handle: Codeforces handle
             threshold: Minimum rating difference from overall median to be considered weak
+            period: Time period to filter submissions by
             prefer_fresh: Force refresh even if stale data exists
 
         Returns:
@@ -191,6 +212,9 @@ class TagsController(BaseMetricController):
 
         # Case 1: Fresh data (< 4 hours)
         if submissions and not is_stale:
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             tags_analysis = tags_service.analyze_tags(handle, submissions)
 
             weak_tags = tags_analysis.get_weak_tags(threshold)
@@ -211,6 +235,9 @@ class TagsController(BaseMetricController):
         # Case 2: Stale data (4-24 hours) and !prefer_fresh
         if submissions and is_stale and not prefer_fresh:
             # Return stale data immediately
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             tags_analysis = tags_service.analyze_tags(handle, submissions)
 
             weak_tags = tags_analysis.get_weak_tags(threshold)
@@ -256,6 +283,9 @@ class TagsController(BaseMetricController):
                     status_code=404, detail=f"User '{handle}' not found on Codeforces"
                 )
 
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             self._validate_submissions_exist(submissions, handle)
 
             tags_analysis = tags_service.analyze_tags(handle, submissions)

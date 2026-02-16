@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple
 
 from litestar import Controller
 from litestar.exceptions import HTTPException
@@ -16,10 +15,10 @@ class BaseMetricController(Controller):
 
     @staticmethod
     def _filter_by_date_range(
-        submissions: List[Submission],
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-    ) -> List[Submission]:
+        submissions: list[Submission],
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[Submission]:
         """
         Filter submissions by date range.
 
@@ -44,7 +43,7 @@ class BaseMetricController(Controller):
         return filtered
 
     @staticmethod
-    def _validate_submissions_exist(submissions: List[Submission], handle: str) -> None:
+    def _validate_submissions_exist(submissions: list[Submission], handle: str) -> None:
         """
         Validate that submissions list is not empty.
 
@@ -74,7 +73,7 @@ class BaseMetricController(Controller):
     @staticmethod
     async def get_submissions_with_staleness(
         redis: Redis, handle: str
-    ) -> Tuple[Optional[List[Submission]], int, bool]:
+    ) -> tuple[list[Submission] | None, int, bool]:
         """
         Get submissions from cache with staleness information.
 

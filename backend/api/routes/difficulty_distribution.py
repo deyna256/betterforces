@@ -1,6 +1,7 @@
 """Difficulty distribution API routes."""
 
 import asyncio
+from datetime import datetime, timezone
 from typing import Union
 
 from litestar import get
@@ -16,6 +17,7 @@ from backend.api.deps import (
     task_queue_dependency,
 )
 from backend.api.routes.base import BaseMetricController
+from backend.domain.models.time_period import TimePeriod
 from backend.api.schemas.difficulty_distribution import (
     DifficultyDistributionResponse,
     RatingRangeSchema,
@@ -49,6 +51,10 @@ class DifficultyDistributionController(BaseMetricController):
         difficulty_service: DifficultyDistributionService,
         redis: Redis,
         task_queue: TaskQueue,
+        period: TimePeriod = Parameter(
+            default=TimePeriod.ALL_TIME,
+            description="Time period to filter submissions by",
+        ),
         prefer_fresh: bool = Parameter(
             default=False,
             description="If true, force refresh even if stale data is available",
@@ -63,6 +69,7 @@ class DifficultyDistributionController(BaseMetricController):
 
         Args:
             handle: Codeforces handle
+            period: Time period to filter submissions by
             prefer_fresh: Force refresh even if stale data exists
 
         Returns:
@@ -74,6 +81,9 @@ class DifficultyDistributionController(BaseMetricController):
 
         # Case 1: Fresh data (< 4 hours)
         if submissions and not is_stale:
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             distribution = difficulty_service.analyze_difficulty_distribution(handle, submissions)
 
             ranges = [
@@ -95,6 +105,9 @@ class DifficultyDistributionController(BaseMetricController):
         # Case 2: Stale data (4-24 hours) and !prefer_fresh
         if submissions and is_stale and not prefer_fresh:
             # Return stale data immediately
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             distribution = difficulty_service.analyze_difficulty_distribution(handle, submissions)
 
             ranges = [
@@ -141,6 +154,9 @@ class DifficultyDistributionController(BaseMetricController):
                     status_code=404, detail=f"User '{handle}' not found on Codeforces"
                 )
 
+            submissions = self._filter_by_date_range(
+                submissions, start_date=period.to_start_date(now=datetime.now(timezone.utc))
+            )
             self._validate_submissions_exist(submissions, handle)
 
             distribution = difficulty_service.analyze_difficulty_distribution(handle, submissions)

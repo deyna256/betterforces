@@ -8,6 +8,7 @@ from .abandoned_problems import (
     RatingAbandonedStats,
     TagAbandonedStats,
 )
+from .daily_activity import DailyActivity, DailyActivityAnalysis
 from .difficulty_distribution import DifficultyDistribution, RatingRange
 from .time_period import TimePeriod
 
@@ -15,6 +16,8 @@ __all__ = [
     "AbandonedProblem",
     "AbandonedProblemsAnalysis",
     "BaseDomainModel",
+    "DailyActivity",
+    "DailyActivityAnalysis",
     "DifficultyDistribution",
     "Problem",
     "RatingAbandonedStats",

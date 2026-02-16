@@ -46,17 +46,19 @@ def _next_month(dt: datetime) -> datetime:
     return dt.replace(month=dt.month + 1)
 
 
+_FIXED_STEPS = {
+    "minute": timedelta(minutes=1),
+    "hour": timedelta(hours=1),
+    "day": timedelta(days=1),
+}
+
+
 def _advance(current: datetime, granularity: str) -> datetime:
     if granularity == "year":
         return current.replace(year=current.year + 1)
     if granularity == "month":
         return _next_month(current)
-    step = {
-        "minute": timedelta(minutes=1),
-        "hour": timedelta(hours=1),
-        "day": timedelta(days=1),
-    }
-    return current + step[granularity]
+    return current + _FIXED_STEPS[granularity]
 
 
 class DailyActivityService(BaseMetricService):

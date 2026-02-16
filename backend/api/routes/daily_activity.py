@@ -64,9 +64,11 @@ class DailyActivityController(BaseMetricController):
         Get user's submission activity with adaptive granularity.
 
         Granularity adapts to the chosen period:
-        - hour  -> per-minute buckets
-        - day   -> per-hour buckets
-        - week+ -> per-day buckets
+        - hour       -> per-minute buckets
+        - day        -> per-hour buckets
+        - week/month -> per-day buckets
+        - half_year/year -> per-month buckets
+        - all_time   -> per-year buckets
         """
         now = datetime.now(timezone.utc)
         start_date = period.to_start_date(now=now)

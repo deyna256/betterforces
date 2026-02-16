@@ -8,19 +8,19 @@ from backend.domain.models.base import BaseDomainModel
 
 @dataclass
 class DailyActivity(BaseDomainModel):
-    """Activity stats for a single day."""
+    """Activity stats for a single time bucket (minute, hour, day, month, or year)."""
 
-    date: str  # "2025-01-15"
-    solved_count: int  # unique accepted problems
-    attempt_count: int  # all other submissions
+    date: str
+    solved_count: int
+    attempt_count: int
 
 
 @dataclass
 class DailyActivityAnalysis(BaseDomainModel):
-    """Daily activity analysis result."""
+    """Aggregated activity analysis over a time range."""
 
     handle: str
     days: List[DailyActivity]
     total_solved: int
     total_attempts: int
-    active_days: int  # days with solved_count > 0 or attempt_count > 0
+    active_days: int

@@ -21,9 +21,7 @@ interface DailyActivityChartProps {
 }
 
 function formatLabel(raw: string): string {
-  if (raw.length === 10) return raw;
-  if (raw.endsWith(':00') && raw.length === 16) return raw.slice(11, 16);
-  if (raw.length === 16) return raw.slice(11, 16);
+  if (raw.includes(' ')) return raw.slice(11);
   return raw;
 }
 

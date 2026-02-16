@@ -161,7 +161,11 @@ function App() {
               period={difficulty.period}
               onPeriodChange={difficulty.setPeriod}
               loading={difficulty.loading}
-              emptyMessage={difficulty.data.total_solved === 0 ? 'No submissions found for this period.' : undefined}
+              emptyMessage={
+                difficulty.data.ranges.length === 0
+                  ? 'No solved problems for this period.'
+                  : undefined
+              }
             >
               <DifficultyDistributionChart
                 ranges={difficulty.data.ranges}

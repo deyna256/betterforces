@@ -61,33 +61,27 @@ class DailyActivityController(BaseMetricController):
         ),
     ) -> Union[Response[DailyActivityResponse], Response[AsyncTaskResponse]]:
         """
-        Get user's daily submission activity.
+        Get user's submission activity with adaptive granularity.
 
-        Returns per-day counts of solved problems and failed attempts,
-        with zero-filled gaps for days without activity.
+        Granularity adapts to the chosen period:
+        - hour  -> per-minute buckets
+        - day   -> per-hour buckets
+        - week+ -> per-day buckets
         """
         now = datetime.now(timezone.utc)
         start_date = period.to_start_date(now=now)
-        end_date_val = now.date()
-        start_date_val = start_date.date() if start_date else None
 
         submissions, age, is_stale = await self.get_submissions_with_staleness(redis, handle)
 
-        # Case 1: Fresh data (< 4 hours)
         if submissions and not is_stale:
             submissions = self._filter_by_date_range(submissions, start_date=start_date)
-            analysis = daily_activity_service.analyze(
-                handle, submissions, start_date=start_date_val, end_date=end_date_val
-            )
+            analysis = daily_activity_service.analyze(handle, submissions, period=period, now=now)
             response = self._build_response(analysis)
             return Response(response, headers=self._cache_headers(14400 - age))
 
-        # Case 2: Stale data (4-24 hours) and !prefer_fresh
         if submissions and is_stale and not prefer_fresh:
             submissions = self._filter_by_date_range(submissions, start_date=start_date)
-            analysis = daily_activity_service.analyze(
-                handle, submissions, start_date=start_date_val, end_date=end_date_val
-            )
+            analysis = daily_activity_service.analyze(handle, submissions, period=period, now=now)
             response = self._build_response(analysis)
 
             asyncio.create_task(task_queue.enqueue(handle))
@@ -101,7 +95,6 @@ class DailyActivityController(BaseMetricController):
                 },
             )
 
-        # Case 3: No data or prefer_fresh
         try:
             task_id = await task_queue.enqueue(handle)
             return Response(
@@ -121,9 +114,7 @@ class DailyActivityController(BaseMetricController):
             submissions = self._filter_by_date_range(submissions, start_date=start_date)
             self._validate_submissions_exist(submissions, handle)
 
-            analysis = daily_activity_service.analyze(
-                handle, submissions, start_date=start_date_val, end_date=end_date_val
-            )
+            analysis = daily_activity_service.analyze(handle, submissions, period=period, now=now)
             response = self._build_response(analysis)
             return Response(response, headers=self._cache_headers(14400))
 

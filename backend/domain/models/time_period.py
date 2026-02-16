@@ -7,6 +7,7 @@ from enum import Enum
 class TimePeriod(str, Enum):
     """Configurable time periods for filtering submissions."""
 
+    HOUR = "hour"
     DAY = "day"
     WEEK = "week"
     MONTH = "month"
@@ -25,6 +26,9 @@ class TimePeriod(str, Enum):
         """
         if self is TimePeriod.ALL_TIME:
             return None
+
+        if self is TimePeriod.HOUR:
+            return now - timedelta(hours=1)
 
         if self is TimePeriod.DAY:
             return now - timedelta(days=1)

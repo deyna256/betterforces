@@ -12,6 +12,11 @@ class TestToStartDate:
         now = datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
         assert TimePeriod.ALL_TIME.to_start_date(now) is None
 
+    def test_hour(self):
+        now = datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
+        result = TimePeriod.HOUR.to_start_date(now)
+        assert result == datetime(2025, 6, 15, 11, 0, 0, tzinfo=timezone.utc)
+
     def test_day(self):
         now = datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
         result = TimePeriod.DAY.to_start_date(now)

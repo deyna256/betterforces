@@ -1,7 +1,6 @@
 """API schemas package."""
 
 from .base import BaseAPISchema
-from .common import APIResponse, ErrorResponse
 from .tags import SimpleTagInfoSchema, TagInfoSchema, TagsResponse, WeakTagsResponse
 
 __all__ = [
@@ -10,6 +9,4 @@ __all__ = [
     "SimpleTagInfoSchema",
     "TagInfoSchema",
     "WeakTagsResponse",
-    "APIResponse",
-    "ErrorResponse",
 ]

@@ -52,6 +52,20 @@ export interface TagsResponse {
   last_updated: string;
 }
 
+export interface DailyActivityItem {
+  date: string;
+  solved_count: number;
+  attempt_count: number;
+}
+
+export interface DailyActivityResponse {
+  days: DailyActivityItem[];
+  total_solved: number;
+  total_attempts: number;
+  active_days: number;
+  last_updated: string;
+}
+
 // Task polling types
 export interface TaskResponse {
   status: 'processing';

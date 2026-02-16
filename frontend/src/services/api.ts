@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import type {
   AbandonedProblemByTagsResponse,
   AbandonedProblemByRatingsResponse,
+  DailyActivityResponse,
   DifficultyDistributionResponse,
   TagsResponse,
   TaskResponse,
@@ -206,6 +207,14 @@ export const codeforcesApi = {
   ) => {
     return fetchWithPolling<DifficultyDistributionResponse>(
       `/difficulty-distribution/${handle}`,
+      buildParams(preferFresh, period)
+    );
+  },
+
+  // Daily Activity
+  getDailyActivity: async (handle: string, preferFresh = false, period: TimePeriod = 'all_time') => {
+    return fetchWithPolling<DailyActivityResponse>(
+      `/daily-activity/${handle}`,
       buildParams(preferFresh, period)
     );
   },

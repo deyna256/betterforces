@@ -3,6 +3,7 @@ import { Header } from './components/layout/Header';
 import { MetricCard } from './components/layout/MetricCard';
 import { StatCard } from './components/layout/StatCard';
 import { AbandonedProblemsChart } from './components/charts/AbandonedProblemsChart';
+import { DailyActivityChart } from './components/charts/DailyActivityChart';
 import { DifficultyDistributionChart } from './components/charts/DifficultyDistributionChart';
 import { TagsChart } from './components/charts/TagsChart';
 import { TagsRadarChart } from './components/charts/TagsRadarChart';
@@ -16,6 +17,7 @@ function App() {
 
   const [handle, setHandle] = useState<string>('tourist');
 
+  const dailyActivity = useMetricData(handle, codeforcesApi.getDailyActivity);
   const difficulty = useMetricData(handle, codeforcesApi.getDifficultyDistribution);
   const tagRatingsRadar = useMetricData(handle, codeforcesApi.getTagRatings);
   const tagRatingsBar = useMetricData(handle, codeforcesApi.getTagRatings);
@@ -28,15 +30,16 @@ function App() {
 
   // Show first error encountered
   const error =
-    difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error;
+    dailyActivity.error || difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error;
 
   // Stale if any metric reports stale
   const staleMetadata =
-    [difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings].find(
+    [dailyActivity, difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings].find(
       (m) => m.metadata.isStale
     )?.metadata ?? null;
 
   const handleRefresh = () => {
+    dailyActivity.refresh();
     difficulty.refresh();
     tagRatingsRadar.refresh();
     tagRatingsBar.refresh();
@@ -45,6 +48,7 @@ function App() {
   };
 
   const handleRetry = () => {
+    dailyActivity.refresh();
     difficulty.refresh();
     tagRatingsRadar.refresh();
     tagRatingsBar.refresh();
@@ -159,6 +163,19 @@ function App() {
                 isDark={isDark}
               />
             </MetricCard>
+
+            {/* Daily Activity */}
+            {dailyActivity.data && (
+              <MetricCard
+                title="Daily Activity"
+                period={dailyActivity.period}
+                onPeriodChange={dailyActivity.setPeriod}
+                loading={dailyActivity.loading}
+                emptyMessage={dailyActivity.data.days.length === 0 ? 'No submissions found for this period.' : undefined}
+              >
+                <DailyActivityChart days={dailyActivity.data.days} isDark={isDark} />
+              </MetricCard>
+            )}
 
             {/* Tag Ratings - Radar Chart */}
             <MetricCard

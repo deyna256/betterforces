@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from './components/layout/Header';
-import { TimePeriodSelector } from './components/layout/TimePeriodSelector';
+import { MetricCard } from './components/layout/MetricCard';
 import { StatCard } from './components/layout/StatCard';
 import { AbandonedProblemsChart } from './components/charts/AbandonedProblemsChart';
 import { DifficultyDistributionChart } from './components/charts/DifficultyDistributionChart';
@@ -8,93 +8,52 @@ import { TagsChart } from './components/charts/TagsChart';
 import { TagsRadarChart } from './components/charts/TagsRadarChart';
 import { codeforcesApi } from './services/api';
 import { useTheme } from './hooks/useTheme';
-import type {
-  AbandonedProblemByTagsResponse,
-  AbandonedProblemByRatingsResponse,
-  DifficultyDistributionResponse,
-  TagsResponse,
-  DataMetadata,
-  TimePeriod,
-} from './types/api';
+import { useMetricData } from './hooks/useMetricData';
 
 function App() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
   const [handle, setHandle] = useState<string>('tourist');
-  const [period, setPeriod] = useState<TimePeriod>('all_time');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Data states
-  const [abandonedByTags, setAbandonedByTags] = useState<AbandonedProblemByTagsResponse | null>(
-    null
-  );
-  const [abandonedByRatings, setAbandonedByRatings] =
-    useState<AbandonedProblemByRatingsResponse | null>(null);
-  const [difficultyDist, setDifficultyDist] = useState<DifficultyDistributionResponse | null>(
-    null
-  );
-  const [tagRatings, setTagRatings] = useState<TagsResponse | null>(null);
+  const difficulty = useMetricData(handle, codeforcesApi.getDifficultyDistribution);
+  const tagRatings = useMetricData(handle, codeforcesApi.getTagRatings);
+  const abandonedTags = useMetricData(handle, codeforcesApi.getAbandonedProblemsByTags);
+  const abandonedRatings = useMetricData(handle, codeforcesApi.getAbandonedProblemsByRatings);
 
-  // Metadata state
-  const [dataMetadata, setDataMetadata] = useState<DataMetadata>({
-    isStale: false,
-  });
+  // Initial load: show full-page spinner only when we have no data yet
+  const initialLoading =
+    !difficulty.data && !tagRatings.data && (difficulty.loading || tagRatings.loading);
 
-  const fetchAllData = async (
-    userHandle: string,
-    preferFresh = false,
-    selectedPeriod: TimePeriod = period
-  ) => {
-    setLoading(true);
-    setError(null);
+  // Show first error encountered
+  const error = difficulty.error || tagRatings.error || abandonedTags.error || abandonedRatings.error;
 
-    try {
-      const [abandonedTagsRes, abandonedRatingsRes, difficultyRes, tagsRes] = await Promise.all([
-        codeforcesApi.getAbandonedProblemsByTags(userHandle, preferFresh, selectedPeriod),
-        codeforcesApi.getAbandonedProblemsByRatings(userHandle, preferFresh, selectedPeriod),
-        codeforcesApi.getDifficultyDistribution(userHandle, preferFresh, selectedPeriod),
-        codeforcesApi.getTagRatings(userHandle, preferFresh, selectedPeriod),
-      ]);
-
-      setAbandonedByTags(abandonedTagsRes.data);
-      setAbandonedByRatings(abandonedRatingsRes.data);
-      setDifficultyDist(difficultyRes.data);
-      setTagRatings(tagsRes.data);
-
-      // Use metadata from difficulty distribution (they should all be the same)
-      setDataMetadata(difficultyRes.metadata);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch data. Please check the handle and try again.'
-      );
-      console.error('Error fetching data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Stale if any metric reports stale
+  const staleMetadata =
+    [difficulty, tagRatings, abandonedTags, abandonedRatings].find((m) => m.metadata.isStale)
+      ?.metadata ?? null;
 
   const handleRefresh = () => {
-    if (handle) {
-      fetchAllData(handle, true); // Force fresh data
-    }
+    difficulty.refresh();
+    tagRatings.refresh();
+    abandonedTags.refresh();
+    abandonedRatings.refresh();
   };
 
-  useEffect(() => {
-    if (handle) {
-      fetchAllData(handle, false, period);
-    }
-  }, [handle, period]);
+  const handleRetry = () => {
+    // Reset periods to trigger fresh fetches
+    difficulty.refresh();
+    tagRatings.refresh();
+    abandonedTags.refresh();
+    abandonedRatings.refresh();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header handle={handle} onHandleChange={setHandle} theme={theme} onToggleTheme={toggleTheme} />
 
       <main className="container mx-auto px-4 py-8">
-        {loading && (
+        {initialLoading && (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-cf-blue mx-auto mb-4"></div>
@@ -103,44 +62,25 @@ function App() {
           </div>
         )}
 
-        {error && (
+        {error && !initialLoading && (
           <div className="bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-lg p-6 mb-8">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h3 className="text-red-900 dark:text-red-300 font-semibold text-lg mb-2">Error</h3>
                 <p className="text-red-700 dark:text-red-400 mb-4">{error}</p>
                 <button
-                  onClick={() => fetchAllData(handle)}
+                  onClick={handleRetry}
                   className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
                   Try Again
                 </button>
               </div>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 transition-colors ml-4"
-                aria-label="Close"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
             </div>
           </div>
         )}
 
         {/* Stale Data Warning */}
-        {!loading && !error && dataMetadata.isStale && (
+        {!initialLoading && !error && staleMetadata && (
           <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-6 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg
@@ -158,8 +98,8 @@ function App() {
                 <h3 className="text-yellow-900 dark:text-yellow-300 font-semibold text-lg">Data May Be Outdated</h3>
                 <p className="text-yellow-800 dark:text-yellow-400">
                   This data is{' '}
-                  {dataMetadata.dataAge
-                    ? `${Math.floor(dataMetadata.dataAge / 3600)} hours old`
+                  {staleMetadata.dataAge
+                    ? `${Math.floor(staleMetadata.dataAge / 3600)} hours old`
                     : 'older than 4 hours'}
                   . Fresh data is being fetched in the background.
                 </p>
@@ -174,68 +114,91 @@ function App() {
           </div>
         )}
 
-        {!loading && !error && difficultyDist && tagRatings && (
+        {!initialLoading && !error && difficulty.data && tagRatings.data && (
           <>
-            <TimePeriodSelector value={period} onChange={setPeriod} isDark={isDark} />
-
             {/* Stats Overview */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <StatCard
                 title="Total Solved"
-                value={difficultyDist.total_solved}
+                value={difficulty.data.total_solved}
                 description="Unique problems"
                 color="green"
               />
               <StatCard
                 title="Overall Median Rating"
-                value={Math.round(tagRatings.overall_median_rating)}
+                value={Math.round(tagRatings.data.overall_median_rating)}
                 description="Across all problems"
                 color="blue"
               />
               <StatCard
                 title="Abandoned Problems"
-                value={abandonedByTags?.total_abandoned_problems || 0}
+                value={abandonedTags.data?.total_abandoned_problems || 0}
                 description="Never solved after attempts"
                 color="red"
               />
             </div>
 
             {/* Difficulty Distribution */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+            <MetricCard
+              title="Difficulty Distribution"
+              period={difficulty.period}
+              onPeriodChange={difficulty.setPeriod}
+              loading={difficulty.loading}
+            >
               <DifficultyDistributionChart
-                ranges={difficultyDist.ranges}
-                totalSolved={difficultyDist.total_solved}
+                ranges={difficulty.data.ranges}
+                totalSolved={difficulty.data.total_solved}
                 isDark={isDark}
               />
-            </div>
+            </MetricCard>
 
             {/* Tag Ratings - Radar Chart */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-              <TagsRadarChart tags={tagRatings.tags} type="all" isDark={isDark} />
-            </div>
+            <MetricCard
+              title="Tag Ratings — Radar"
+              period={tagRatings.period}
+              onPeriodChange={tagRatings.setPeriod}
+              loading={tagRatings.loading}
+            >
+              <TagsRadarChart tags={tagRatings.data.tags} type="all" isDark={isDark} />
+            </MetricCard>
 
             {/* Tag Ratings - Bar Chart */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+            <MetricCard
+              title="Tag Ratings — Bar"
+              period={tagRatings.period}
+              onPeriodChange={tagRatings.setPeriod}
+              loading={tagRatings.loading}
+            >
               <TagsChart
-                tags={tagRatings.tags}
-                overallMedian={tagRatings.overall_median_rating}
+                tags={tagRatings.data.tags}
+                overallMedian={tagRatings.data.overall_median_rating}
                 type="all"
                 isDark={isDark}
               />
-            </div>
+            </MetricCard>
 
             {/* Abandoned Problems by Tags */}
-            {abandonedByTags && abandonedByTags.tags.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-                <AbandonedProblemsChart data={abandonedByTags.tags} type="tags" isDark={isDark} />
-              </div>
+            {abandonedTags.data && abandonedTags.data.tags.length > 0 && (
+              <MetricCard
+                title="Abandoned Problems by Tags"
+                period={abandonedTags.period}
+                onPeriodChange={abandonedTags.setPeriod}
+                loading={abandonedTags.loading}
+              >
+                <AbandonedProblemsChart data={abandonedTags.data.tags} type="tags" isDark={isDark} />
+              </MetricCard>
             )}
 
             {/* Abandoned Problems by Ratings */}
-            {abandonedByRatings && abandonedByRatings.ratings.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-                <AbandonedProblemsChart data={abandonedByRatings.ratings} type="ratings" isDark={isDark} />
-              </div>
+            {abandonedRatings.data && abandonedRatings.data.ratings.length > 0 && (
+              <MetricCard
+                title="Abandoned Problems by Ratings"
+                period={abandonedRatings.period}
+                onPeriodChange={abandonedRatings.setPeriod}
+                loading={abandonedRatings.loading}
+              >
+                <AbandonedProblemsChart data={abandonedRatings.data.ratings} type="ratings" isDark={isDark} />
+              </MetricCard>
             )}
           </>
         )}

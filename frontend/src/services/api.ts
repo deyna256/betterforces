@@ -21,7 +21,6 @@ const apiClient = axios.create({
   },
 });
 
-// Helper to check if response is a task (202 status)
 function isTaskResponse(data: unknown): data is TaskResponse {
   return (
     typeof data === 'object' &&
@@ -32,15 +31,13 @@ function isTaskResponse(data: unknown): data is TaskResponse {
   );
 }
 
-// Poll task status with exponential backoff
 async function pollTask<T>(taskId: string, maxAttempts = 30): Promise<T> {
   let attempt = 0;
-  let delay = 2000; // Start with 2 seconds
+  let delay = 2000;
 
   while (attempt < maxAttempts) {
     attempt++;
 
-    // Wait before polling (except first attempt)
     if (attempt > 1) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
@@ -49,20 +46,15 @@ async function pollTask<T>(taskId: string, maxAttempts = 30): Promise<T> {
       const response = await apiClient.get<TaskStatusResponse>(`/tasks/${taskId}`);
 
       if (response.status === 200) {
-        // Task completed - fetch actual data
-        // The task endpoint returns completion info, we need to make the actual request again
         return response.data as unknown as T;
       }
 
-      // Still processing (202), continue polling
       if (response.status === 202) {
-        // Exponential backoff: 2s, 3s, 4.5s, 6.75s, max 10s
         delay = Math.min(delay * 1.5, 10000);
         continue;
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 500) {
-        // Task failed
         const taskError = error.response.data as TaskStatusResponse;
         throw new Error(taskError.error || 'Task failed');
       }
@@ -73,7 +65,6 @@ async function pollTask<T>(taskId: string, maxAttempts = 30): Promise<T> {
   throw new Error('Polling timeout: Task took too long to complete');
 }
 
-// Retry with exponential backoff for rate limit errors
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries = 3,
@@ -90,9 +81,8 @@ async function retryWithBackoff<T>(
           'Service is temporarily overloaded. Please wait a moment and try again.'
         );
 
-        // If not last attempt, wait and retry
         if (attempt < maxRetries) {
-          const delay = initialDelay * Math.pow(2, attempt); // 2s, 4s, 8s
+          const delay = initialDelay * Math.pow(2, attempt);
           console.log(`Rate limited (429), retrying in ${delay / 1000}s...`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
@@ -105,7 +95,6 @@ async function retryWithBackoff<T>(
   throw lastError || new Error('Max retries exceeded');
 }
 
-// Wrapper for API calls with polling support
 async function fetchWithPolling<T>(
   endpoint: string,
   params: Record<string, string> = {}
@@ -117,17 +106,13 @@ async function fetchWithPolling<T>(
       const url = queryString ? `${endpoint}?${queryString}` : endpoint;
       const response = await apiClient.get<T | TaskResponse>(url);
 
-      // Check if response is a task (202 Accepted)
       if (response.status === 202 && isTaskResponse(response.data)) {
         const taskData = response.data;
 
-        // Poll until task completes
         await pollTask(taskData.task_id);
 
-        // After task completes, fetch the actual data
         const dataResponse = await apiClient.get<T>(endpoint);
 
-        // Extract metadata from headers
         const metadata: DataMetadata = {
           isStale: dataResponse.headers['x-data-stale'] === 'true',
           dataAge: dataResponse.headers['x-data-age']
@@ -138,7 +123,6 @@ async function fetchWithPolling<T>(
         return { data: dataResponse.data, metadata };
       }
 
-      // Regular response (200 OK)
       const metadata: DataMetadata = {
         isStale: response.headers['x-data-stale'] === 'true',
         dataAge: response.headers['x-data-age']
@@ -154,13 +138,11 @@ async function fetchWithPolling<T>(
           throw new Error('User not found on Codeforces');
         }
         if (axiosError.response?.status === 429) {
-          // Let retryWithBackoff handle this
           throw error;
         }
         if (axiosError.response?.status === 503) {
           throw new Error('Service temporarily unavailable. Please try again later.');
         }
-        // Generic error with user-friendly message
         throw new Error('Failed to load data. Please check the handle and try again.');
       }
       throw error;
@@ -176,7 +158,6 @@ function buildParams(preferFresh: boolean, period: TimePeriod): Record<string, s
 }
 
 export const codeforcesApi = {
-  // Abandoned Problems
   getAbandonedProblemsByTags: async (
     handle: string,
     preferFresh = false,
@@ -199,7 +180,6 @@ export const codeforcesApi = {
     );
   },
 
-  // Difficulty Distribution
   getDifficultyDistribution: async (
     handle: string,
     preferFresh = false,
@@ -211,7 +191,6 @@ export const codeforcesApi = {
     );
   },
 
-  // Daily Activity
   getDailyActivity: async (handle: string, preferFresh = false, period: TimePeriod = 'all_time') => {
     return fetchWithPolling<DailyActivityResponse>(
       `/daily-activity/${handle}`,
@@ -219,7 +198,6 @@ export const codeforcesApi = {
     );
   },
 
-  // Tags
   getTagRatings: async (handle: string, preferFresh = false, period: TimePeriod = 'all_time') => {
     return fetchWithPolling<TagsResponse>(`/tag-ratings/${handle}`, buildParams(preferFresh, period));
   },

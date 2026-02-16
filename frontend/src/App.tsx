@@ -24,15 +24,12 @@ function App() {
   const abandonedTags = useMetricData(handle, codeforcesApi.getAbandonedProblemsByTags);
   const abandonedRatings = useMetricData(handle, codeforcesApi.getAbandonedProblemsByRatings);
 
-  // Initial load: show full-page spinner only when we have no data yet
   const initialLoading =
     !difficulty.data && !tagRatingsRadar.data && (difficulty.loading || tagRatingsRadar.loading);
 
-  // Show first error encountered
   const error =
     dailyActivity.error || difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error;
 
-  // Stale if any metric reports stale
   const staleMetadata =
     [dailyActivity, difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings].find(
       (m) => m.metadata.isStale
@@ -87,7 +84,6 @@ function App() {
           </div>
         )}
 
-        {/* Stale Data Warning */}
         {!initialLoading && !error && staleMetadata && (
           <div className="bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-6 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -124,7 +120,6 @@ function App() {
 
         {!initialLoading && !error && difficulty.data && tagRatingsRadar.data && (
           <>
-            {/* Stats Overview — always shows all-time values */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <StatCard
                 title="Total Solved"
@@ -149,7 +144,18 @@ function App() {
               />
             </div>
 
-            {/* Difficulty Distribution */}
+            {dailyActivity.data && (
+              <MetricCard
+                title="Daily Activity"
+                period={dailyActivity.period}
+                onPeriodChange={dailyActivity.setPeriod}
+                loading={dailyActivity.loading}
+                emptyMessage={dailyActivity.data.days.length === 0 ? 'No submissions found for this period.' : undefined}
+              >
+                <DailyActivityChart days={dailyActivity.data.days} isDark={isDark} />
+              </MetricCard>
+            )}
+
             <MetricCard
               title="Difficulty Distribution"
               period={difficulty.period}
@@ -164,20 +170,6 @@ function App() {
               />
             </MetricCard>
 
-            {/* Daily Activity */}
-            {dailyActivity.data && (
-              <MetricCard
-                title="Daily Activity"
-                period={dailyActivity.period}
-                onPeriodChange={dailyActivity.setPeriod}
-                loading={dailyActivity.loading}
-                emptyMessage={dailyActivity.data.days.length === 0 ? 'No submissions found for this period.' : undefined}
-              >
-                <DailyActivityChart days={dailyActivity.data.days} isDark={isDark} />
-              </MetricCard>
-            )}
-
-            {/* Tag Ratings - Radar Chart */}
             <MetricCard
               title="Tag Ratings — Radar"
               period={tagRatingsRadar.period}
@@ -194,7 +186,6 @@ function App() {
               <TagsRadarChart tags={tagRatingsRadar.data.tags} type="all" isDark={isDark} />
             </MetricCard>
 
-            {/* Tag Ratings - Bar Chart */}
             <MetricCard
               title="Tag Ratings — Bar"
               period={tagRatingsBar.period}
@@ -218,7 +209,6 @@ function App() {
               )}
             </MetricCard>
 
-            {/* Abandoned Problems by Tags */}
             {abandonedTags.data && (
               <MetricCard
                 title="Abandoned Problems by Tags"
@@ -231,7 +221,6 @@ function App() {
               </MetricCard>
             )}
 
-            {/* Abandoned Problems by Ratings */}
             {abandonedRatings.data && (
               <MetricCard
                 title="Abandoned Problems by Ratings"

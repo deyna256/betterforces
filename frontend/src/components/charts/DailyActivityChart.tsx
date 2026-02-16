@@ -20,11 +20,20 @@ interface DailyActivityChartProps {
   isDark?: boolean;
 }
 
+function formatLabel(raw: string): string {
+  if (raw.length === 10) return raw;
+  if (raw.endsWith(':00') && raw.length === 16) return raw.slice(11, 16);
+  if (raw.length === 16) return raw.slice(11, 16);
+  return raw;
+}
+
 export function DailyActivityChart({ days, isDark = false }: DailyActivityChartProps) {
-  const labels = days.map((d) => d.date);
+  const labels = days.map((d) => formatLabel(d.date));
 
   const textColor = isDark ? '#e5e7eb' : '#374151';
   const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+  const hidePoints = days.length > 60;
 
   const chartData = {
     labels,
@@ -36,7 +45,7 @@ export function DailyActivityChart({ days, isDark = false }: DailyActivityChartP
         backgroundColor: isDark ? 'rgba(96,165,250,0.15)' : 'rgba(37,99,235,0.1)',
         fill: true,
         tension: 0.3,
-        pointRadius: days.length > 60 ? 0 : 3,
+        pointRadius: hidePoints ? 0 : 3,
         pointHoverRadius: 5,
       },
       {
@@ -46,7 +55,7 @@ export function DailyActivityChart({ days, isDark = false }: DailyActivityChartP
         backgroundColor: isDark ? 'rgba(249,115,22,0.15)' : 'rgba(234,88,12,0.1)',
         fill: true,
         tension: 0.3,
-        pointRadius: days.length > 60 ? 0 : 3,
+        pointRadius: hidePoints ? 0 : 3,
         pointHoverRadius: 5,
       },
     ],
@@ -66,9 +75,17 @@ export function DailyActivityChart({ days, isDark = false }: DailyActivityChartP
       },
       title: {
         display: true,
-        text: 'Daily Activity',
+        text: 'Activity Timeline',
         color: textColor,
         font: { size: 16, weight: 'bold' },
+      },
+      tooltip: {
+        callbacks: {
+          title: (items) => {
+            const idx = items[0]?.dataIndex;
+            return idx !== undefined ? days[idx].date : '';
+          },
+        },
       },
     },
     scales: {
@@ -85,7 +102,6 @@ export function DailyActivityChart({ days, isDark = false }: DailyActivityChartP
           maxRotation: 45,
         },
         grid: { color: gridColor },
-        title: { display: true, text: 'Date', color: textColor },
       },
     },
   };

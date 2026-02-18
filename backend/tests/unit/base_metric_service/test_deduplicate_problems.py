@@ -1,4 +1,4 @@
-from backend.domain.services.base import SubmissionProcessor
+from backend.domain.services.base import SubmissionCollection
 
 
 def test_deduplicate_problems_happy_path(mock_submission):
@@ -20,13 +20,13 @@ def test_deduplicate_problems_happy_path(mock_submission):
         is_solved=True,
     )
 
-    processor = SubmissionProcessor([submission1, submission2])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2])
+    result = submission_collection.deduplicate_problems()
     assert result == [submission1]
 
 def test_deduplicate_problems_empty_submissions_list(mock_submission):
-   processor = SubmissionProcessor([])
-   result = processor._deduplicate_problems()
+   submission_collection = SubmissionCollection([])
+   result = submission_collection.deduplicate_problems()
    assert result == []
 
 def test_deduplicate_problems_single_submission(mock_submission):
@@ -39,8 +39,8 @@ def test_deduplicate_problems_single_submission(mock_submission):
        is_solved=False,
    )
 
-   processor = SubmissionProcessor([submission1])
-   result = processor._deduplicate_problems()
+   submission_collection = SubmissionCollection([submission1])
+   result = submission_collection.deduplicate_problems()
 
    assert result == [submission1]
 
@@ -72,8 +72,8 @@ def test_deduplicate_problems_all_unique_submissions(mock_submission):
         is_solved=True,
     )
 
-    processor = SubmissionProcessor([submission1, submission2, submission3])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2, submission3])
+    result = submission_collection.deduplicate_problems()
 
     assert result == [submission1, submission2, submission3]
 
@@ -105,8 +105,8 @@ def test_deduplicate_problems_multiple_duplicates(mock_submission):
         is_solved=False,
     )
 
-    processor = SubmissionProcessor([submission1, submission2, submission3])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2, submission3])
+    result = submission_collection.deduplicate_problems()
 
     assert result == [submission1]
 
@@ -138,8 +138,8 @@ def test_deduplicate_problems_preserves_order(mock_submission):
         is_solved=False,
     )
 
-    processor = SubmissionProcessor([submission1, submission2, submission3])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2, submission3])
+    result = submission_collection.deduplicate_problems()
 
     assert result == [submission1, submission2]
 
@@ -162,8 +162,8 @@ def test_deduplicate_problems_same_index_different_contest_id(mock_submission):
         is_solved=True,
     )
 
-    processor = SubmissionProcessor([submission1, submission2])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2])
+    result = submission_collection.deduplicate_problems()
     assert result == [submission1, submission2]
 
 def test_deduplicate_problems_different_index_same_contest_id(mock_submission):
@@ -186,6 +186,6 @@ def test_deduplicate_problems_different_index_same_contest_id(mock_submission):
         is_solved=True,
     )
 
-    processor = SubmissionProcessor([submission1, submission2])
-    result = processor._deduplicate_problems()
+    submission_collection = SubmissionCollection([submission1, submission2])
+    result = submission_collection.deduplicate_problems()
     assert result == [submission1, submission2]

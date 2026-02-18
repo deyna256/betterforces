@@ -2,29 +2,40 @@
 default:
     @just --list
 
-_ports_env_file := if path_exists("envs/.env.ports") { "--env-file envs/.env.ports" } else { "" }
-
-# Build Docker images
+# Build images for development
 build:
-    docker compose {{_ports_env_file}} build
+    docker compose build
 
-# Start all services
+# Start services for development
 up:
-    docker compose {{_ports_env_file}} up -d
+    docker compose up -d
+
+# Build images for production
+build-prod:
+    docker compose -f docker-compose.yml build
+
+# Start services for production
+up-prod:
+    docker compose -f docker-compose.yml up -d
 
 # Stop all services
 down:
-    docker compose {{_ports_env_file}} down
+    docker compose down
 
-# Restart all services
+# Restart services (dev)
 restart:
     just down
     just up
 
+# Restart services (production)
+restart-prod:
+    just down
+    just up-prod
+
 # Show last 250 lines of logs
 logs:
-    docker compose {{_ports_env_file}} logs --tail=250
+    docker compose logs --tail=250
 
 # Stop services and remove volumes/images
 clean:
-    docker compose {{_ports_env_file}} down -v --rmi local
+    docker compose down -v --rmi local

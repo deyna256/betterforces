@@ -8,7 +8,7 @@ from backend.domain.models.difficulty_distribution import (
     DifficultyDistribution,
     RatingRange,
 )
-from backend.domain.services.base import _deduplicate_problems, _filter_successful_submissions
+from backend.domain.services.base import SubmissionProcessor
 
 
 class DifficultyDistributionService():
@@ -61,9 +61,8 @@ class DifficultyDistributionService():
             DifficultyDistribution with analyzed data
         """
         # Filter successful submissions
-        successful_submissions = _filter_successful_submissions(
-            submissions
-        )
+        processor = SubmissionProcessor(submissions)
+        successful_submissions = processor._filter_successful_submissions()
 
         if not successful_submissions:
             return DifficultyDistribution(
@@ -73,7 +72,7 @@ class DifficultyDistributionService():
             )
 
         # Remove duplicate problems (keep first solve)
-        unique_solves = _deduplicate_problems(successful_submissions)
+        unique_solves = processor._deduplicate_problems()
 
         # Group problems by rating bins
         bin_counts = DifficultyDistributionService._create_bin_distribution(unique_solves)

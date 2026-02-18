@@ -6,7 +6,7 @@ from typing import List
 
 from backend.domain.models.codeforces import Submission
 from backend.domain.models.tags import TagInfo, TagsAnalysis
-from backend.domain.services.base import _deduplicate_problems, _filter_successful_submissions
+from backend.domain.services.base import SubmissionProcessor
 
 
 class TagsService():
@@ -25,7 +25,8 @@ class TagsService():
             TagsAnalysis with analyzed data
         """
         # Filter successful submissions
-        successful_submissions = _filter_successful_submissions(submissions)
+        processor = SubmissionProcessor(submissions)
+        successful_submissions = processor._filter_successful_submissions()
 
         if not successful_submissions:
             return TagsAnalysis(
@@ -37,7 +38,7 @@ class TagsService():
             )
 
         # Remove duplicate problems (keep first solve)
-        unique_solves = _deduplicate_problems(successful_submissions)
+        unique_solves = processor._deduplicate_problems()
 
         # Group problems by tags and calculate statistics
         tags_data, overall_ratings = TagsService._analyze_tags(unique_solves)

@@ -1,4 +1,4 @@
-from backend.domain.services import _filter_successful_submissions
+from backend.domain.services.base import SubmissionProcessor
 
 
 def test_filter_successful_submissions_happy_path(mock_submission):
@@ -29,12 +29,14 @@ def test_filter_successful_submissions_happy_path(mock_submission):
         is_solved=True,
     )
 
-    result = _filter_successful_submissions([submission1, submission2, submission3])
+    processor = SubmissionProcessor([submission1, submission2, submission3])
+    result = processor._filter_successful_submissions()
 
     assert result == [submission2, submission3]
 
 def test_filter_successful_submissions_no_submissions(mock_submission):
-    result = _filter_successful_submissions([])
+    processor = SubmissionProcessor([])
+    result = processor._filter_successful_submissions()
     assert result == []
 
 def test_filter_successful_submissions_only_not_solved_submissions(mock_submission):
@@ -65,7 +67,8 @@ def test_filter_successful_submissions_only_not_solved_submissions(mock_submissi
         is_solved=False,
     )
 
-    result = _filter_successful_submissions([submission1, submission2, submission3])
+    processor = SubmissionProcessor([submission1, submission2, submission3])
+    result = processor._filter_successful_submissions()
 
     assert result == []
 
@@ -97,7 +100,8 @@ def test_filter_successful_submissions_only_solved_submissions(mock_submission):
         is_solved=True,
     )
 
-    result = _filter_successful_submissions([submission1, submission2, submission3])
+    processor = SubmissionProcessor([submission1, submission2, submission3])
+    result = processor._filter_successful_submissions()
 
     assert result == [submission1, submission2, submission3]
 
@@ -129,7 +133,8 @@ def test_filter_successful_submissions_one_solved_submission_to_the_problem(mock
         is_solved=False,
     )
 
-    result = _filter_successful_submissions([submission1, submission2, submission3])
+    processor = SubmissionProcessor([submission1, submission2, submission3])
+    result = processor._filter_successful_submissions()
 
     assert result == [submission2]
 

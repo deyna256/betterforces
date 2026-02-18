@@ -5,15 +5,30 @@ x-logging: &logging
     max-file: "3"
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    env_file:
+      - envs/.env.caddy
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    logging: *logging
+
   backend:
     logging: *logging
     build: ./backend
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend:/app/backend:ro
     env_file:
-      - .env
+      - envs/.env.backend
     depends_on:
       - redis
     restart: unless-stopped
@@ -28,8 +43,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -47,7 +60,7 @@ services:
       context: ./backend
       dockerfile: worker/Dockerfile
     env_file:
-      - .env
+      - envs/.env.worker
     depends_on:
       - redis
     restart: unless-stopped
@@ -57,3 +70,5 @@ services:
 
 volumes:
   redis_data:
+  caddy_data:
+  caddy_config:

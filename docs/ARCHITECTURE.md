@@ -111,7 +111,7 @@ HTTP Request → Route Handler → Check Redis Cache
 ### Key Backend Features
 
 **Submission Deduplication:**
-- `BaseMetricService._deduplicate_problems()` keeps only the first solve per problem
+- `SubmissionCollection.deduplicate_problems()` keeps only the first solve per problem
 - Problems identified by `(contest_id, index)` tuple
 - Critical for accurate statistics since users may solve problems multiple times
 

@@ -38,7 +38,7 @@ class TagsService():
             )
 
         # Remove duplicate problems (keep first solve)
-        unique_solves = submission_collection.deduplicate_problems()
+        unique_solves = submission_collection.deduplicate_problems(successful_submissions)
 
         # Group problems by tags and calculate statistics
         tags_data, overall_ratings = TagsService._analyze_tags(unique_solves)

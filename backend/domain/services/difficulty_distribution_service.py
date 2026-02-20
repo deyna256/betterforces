@@ -72,7 +72,7 @@ class DifficultyDistributionService():
             )
 
         # Remove duplicate problems (keep first solve)
-        unique_solves = submission_collection.deduplicate_problems()
+        unique_solves = submission_collection.deduplicate_problems(successful_submissions)
 
         # Group problems by rating bins
         bin_counts = DifficultyDistributionService._create_bin_distribution(unique_solves)

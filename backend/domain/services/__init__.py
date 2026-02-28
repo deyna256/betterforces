@@ -4,6 +4,7 @@ from .base import BaseMetricService
 from .abandoned_problems_service import AbandonedProblemsService
 from .daily_activity_service import DailyActivityService
 from .difficulty_distribution_service import DifficultyDistributionService
+from .division_problems_service import DivisionProblemsService
 from .tags_service import TagsService
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "BaseMetricService",
     "DailyActivityService",
     "DifficultyDistributionService",
+    "DivisionProblemsService",
     "TagsService",
 ]

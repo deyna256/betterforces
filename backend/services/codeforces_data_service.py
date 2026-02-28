@@ -1,6 +1,6 @@
 """Codeforces data service for BetterForces."""
 
-from typing import List
+from typing import Dict, List
 
 from backend.infrastructure.codeforces_client import CodeforcesClient, UserNotFoundError
 from backend.domain.models.codeforces import Submission
@@ -28,3 +28,13 @@ class CodeforcesDataService:
             except UserNotFoundError:
                 # Re-raise to be caught by controllers
                 raise
+
+    async def get_contest_divisions(self) -> Dict[int, str | None]:
+        """
+        Get mapping of contest IDs to their division.
+
+        Returns:
+            Dictionary mapping contest_id to division string
+        """
+        async with self.codeforces_client as client:
+            return await client.get_contest_divisions()

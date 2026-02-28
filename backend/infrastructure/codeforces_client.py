@@ -1,6 +1,7 @@
 """Codeforces API client for BetterForces."""
 
 import httpx
+import re
 from typing import List, Dict, Any
 import json
 from backend.config import settings
@@ -19,6 +20,10 @@ class UserNotFoundError(Exception):
     """Exception raised when user is not found on Codeforces."""
 
     pass
+
+
+# Global cache for contest division mapping
+_contest_division_cache: Dict[int, str | None] = {}
 
 
 class CodeforcesClient:
@@ -127,3 +132,90 @@ class CodeforcesClient:
                 continue
 
         return submissions
+
+    async def get_contests(self) -> List[Dict[str, Any]]:
+        """
+        Fetch all contests from Codeforces.
+
+        Returns:
+            List of contest data dictionaries
+
+        Raises:
+            CodeforcesAPIError: If API request fails
+        """
+        url = f"{self.base_url}/contest.list"
+
+        try:
+            response = await self.http_client.get(url)
+            data = response.json()
+
+            status = data.get("status")
+            if status != "OK":
+                raise CodeforcesAPIError(
+                    f"API returned status: {status}", response.status_code
+                )
+
+            return data.get("result", [])
+
+        except httpx.HTTPStatusError as e:
+            raise CodeforcesAPIError(f"HTTP error {e.response.status_code}: {e.response.text}")
+        except httpx.RequestError as e:
+            raise CodeforcesAPIError(f"Request error: {str(e)}")
+        except json.JSONDecodeError as e:
+            raise CodeforcesAPIError(f"JSON decode error: {str(e)}")
+
+    async def get_contest_divisions(self) -> Dict[int, str | None]:
+        """
+        Fetch all contests and extract their division information.
+
+        Returns:
+            Dictionary mapping contest_id to division string (e.g., "Div. 1", "Div. 2")
+
+        Raises:
+            CodeforcesAPIError: If API request fails
+        """
+        global _contest_division_cache
+
+        # Return cached data if available
+        if _contest_division_cache:
+            return _contest_division_cache
+
+        contests = await self.get_contests()
+
+        for contest in contests:
+            contest_id = contest.get("id")
+            contest_name = contest.get("name", "")
+
+            if contest_id is not None:
+                division = self._extract_division(contest_name)
+                _contest_division_cache[contest_id] = division
+
+        return _contest_division_cache
+
+    @staticmethod
+    def _extract_division(contest_name: str) -> str | None:
+        """
+        Extract division from contest name.
+
+        Args:
+            contest_name: Name of the contest (e.g., "Codeforces Round 123 (Div. 2)")
+
+        Returns:
+            Division string (e.g., "Div. 1", "Div. 2", "Div. 3", "Div. 4") or None
+        """
+        # Match patterns like "Div. 1", "Div. 2", "Div. 3", "Div. 4"
+        # Also handle "(Div. 1 + Div. 2)" combined rounds
+        patterns = [
+            r"\(Div\.\s*([1-4])\s*\+\s*Div\.\s*([1-4])\)",  # Combined divisions
+            r"Div\.\s*([1-4])",  # Single division
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, contest_name, re.IGNORECASE)
+            if match:
+                if len(match.groups()) == 2:
+                    # Combined division - return the higher div (lower number = harder)
+                    return f"Div. {min(match.group(1), match.group(2))}"
+                return f"Div. {match.group(1)}"
+
+        return None

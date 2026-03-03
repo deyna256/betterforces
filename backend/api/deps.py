@@ -10,6 +10,7 @@ from backend.services.codeforces_data_service import CodeforcesDataService
 from backend.domain.services.abandoned_problems_service import AbandonedProblemsService
 from backend.domain.services.difficulty_distribution_service import DifficultyDistributionService
 from backend.domain.services.daily_activity_service import DailyActivityService
+from backend.domain.services.division_problems_service import DivisionProblemsService
 from backend.domain.services.tags_service import TagsService
 from backend.infrastructure.task_queue import TaskQueue
 from backend.infrastructure.redis_client import get_redis_client
@@ -40,6 +41,11 @@ def get_difficulty_distribution_service() -> DifficultyDistributionService:
     return DifficultyDistributionService()
 
 
+def get_division_problems_service() -> DivisionProblemsService:
+    """Dependency provider for DivisionProblemsService."""
+    return DivisionProblemsService()
+
+
 async def get_redis() -> Redis:
     """Dependency provider for Redis client."""
     return await get_redis_client()
@@ -67,6 +73,9 @@ abandoned_problems_service_dependency = Provide(
 )
 difficulty_distribution_service_dependency = Provide(
     get_difficulty_distribution_service, sync_to_thread=False
+)
+division_problems_service_dependency = Provide(
+    get_division_problems_service, sync_to_thread=False
 )
 tags_service_dependency = Provide(get_tags_service, sync_to_thread=False)
 request_metadata_dependency = Provide(get_request_metadata, sync_to_thread=False)

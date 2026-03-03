@@ -10,6 +10,7 @@ from .abandoned_problems import (
 )
 from .daily_activity import DailyActivity, DailyActivityAnalysis
 from .difficulty_distribution import DifficultyDistribution, RatingRange
+from .division_problems import DivisionProblemsAnalysis, DivisionStats
 from .time_period import TimePeriod
 
 __all__ = [
@@ -19,6 +20,8 @@ __all__ = [
     "DailyActivity",
     "DailyActivityAnalysis",
     "DifficultyDistribution",
+    "DivisionProblemsAnalysis",
+    "DivisionStats",
     "Problem",
     "RatingAbandonedStats",
     "RatingRange",

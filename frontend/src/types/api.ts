@@ -66,6 +66,20 @@ export interface DailyActivityResponse {
   last_updated: string;
 }
 
+export interface DivisionStats {
+  division: string;
+  contest_count: number;
+  total_problems_solved: number;
+  average_problems_per_contest: number;
+}
+
+export interface DivisionProblemsResponse {
+  divisions: DivisionStats[];
+  total_contests: number;
+  total_problems_solved: number;
+  last_updated: string;
+}
+
 // Task polling types
 export interface TaskResponse {
   status: 'processing';

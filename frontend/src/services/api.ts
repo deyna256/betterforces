@@ -4,6 +4,7 @@ import type {
   AbandonedProblemByRatingsResponse,
   DailyActivityResponse,
   DifficultyDistributionResponse,
+  DivisionProblemsResponse,
   TagsResponse,
   TaskResponse,
   TaskStatusResponse,
@@ -200,5 +201,16 @@ export const codeforcesApi = {
 
   getTagRatings: async (handle: string, preferFresh = false, period: TimePeriod = 'all_time') => {
     return fetchWithPolling<TagsResponse>(`/tag-ratings/${handle}`, buildParams(preferFresh, period));
+  },
+
+  getDivisionProblems: async (
+    handle: string,
+    preferFresh = false,
+    period: TimePeriod = 'all_time'
+  ) => {
+    return fetchWithPolling<DivisionProblemsResponse>(
+      `/division-problems/${handle}`,
+      buildParams(preferFresh, period)
+    );
   },
 };

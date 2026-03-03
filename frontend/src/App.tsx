@@ -5,6 +5,7 @@ import { StatCard } from './components/layout/StatCard';
 import { AbandonedProblemsChart } from './components/charts/AbandonedProblemsChart';
 import { DailyActivityChart } from './components/charts/DailyActivityChart';
 import { DifficultyDistributionChart } from './components/charts/DifficultyDistributionChart';
+import { DivisionProblemsChart } from './components/charts/DivisionProblemsChart';
 import { TagsChart } from './components/charts/TagsChart';
 import { TagsRadarChart } from './components/charts/TagsRadarChart';
 import { codeforcesApi } from './services/api';
@@ -23,15 +24,16 @@ function App() {
   const tagRatingsBar = useMetricData(handle, codeforcesApi.getTagRatings);
   const abandonedTags = useMetricData(handle, codeforcesApi.getAbandonedProblemsByTags);
   const abandonedRatings = useMetricData(handle, codeforcesApi.getAbandonedProblemsByRatings);
+  const divisionProblems = useMetricData(handle, codeforcesApi.getDivisionProblems);
 
   const initialLoading =
     !difficulty.data && !tagRatingsRadar.data && (difficulty.loading || tagRatingsRadar.loading);
 
   const error =
-    dailyActivity.error || difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error;
+    dailyActivity.error || difficulty.error || tagRatingsRadar.error || tagRatingsBar.error || abandonedTags.error || abandonedRatings.error || divisionProblems.error;
 
   const staleMetadata =
-    [dailyActivity, difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings].find(
+    [dailyActivity, difficulty, tagRatingsRadar, tagRatingsBar, abandonedTags, abandonedRatings, divisionProblems].find(
       (m) => m.metadata.isStale
     )?.metadata ?? null;
 
@@ -42,6 +44,7 @@ function App() {
     tagRatingsBar.refresh();
     abandonedTags.refresh();
     abandonedRatings.refresh();
+    divisionProblems.refresh();
   };
 
   const handleRetry = () => {
@@ -51,6 +54,7 @@ function App() {
     tagRatingsBar.refresh();
     abandonedTags.refresh();
     abandonedRatings.refresh();
+    divisionProblems.refresh();
   };
 
   return (
@@ -234,6 +238,18 @@ function App() {
                 emptyMessage={abandonedRatings.data.ratings.length === 0 ? 'No abandoned problems for this period.' : undefined}
               >
                 <AbandonedProblemsChart data={abandonedRatings.data.ratings} type="ratings" isDark={isDark} />
+              </MetricCard>
+            )}
+
+            {divisionProblems.data && (
+              <MetricCard
+                title="Division Problems"
+                period={divisionProblems.period}
+                onPeriodChange={divisionProblems.setPeriod}
+                loading={divisionProblems.loading}
+                emptyMessage={divisionProblems.data.divisions.length === 0 ? 'No contest data for this period.' : undefined}
+              >
+                <DivisionProblemsChart divisions={divisionProblems.data.divisions} isDark={isDark} />
               </MetricCard>
             )}
           </>

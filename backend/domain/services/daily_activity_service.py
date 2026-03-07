@@ -7,7 +7,6 @@ from typing import List, Optional
 from backend.domain.models.codeforces import Submission
 from backend.domain.models.daily_activity import DailyActivity, DailyActivityAnalysis
 from backend.domain.models.time_period import TimePeriod
-from backend.domain.services.base import BaseMetricService
 
 _GRANULARITY_MAP = {
     TimePeriod.HOUR: "minute",
@@ -61,7 +60,7 @@ def _advance(current: datetime, granularity: str) -> datetime:
     return current + _FIXED_STEPS[granularity]
 
 
-class DailyActivityService(BaseMetricService):
+class DailyActivityService():
     """Service for generating activity analytics with variable granularity."""
 
     @staticmethod

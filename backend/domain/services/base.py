@@ -1,18 +1,25 @@
+import copy
 from typing import List
-
 from backend.domain.models.codeforces import Submission
 
+class SubmissionCollection:
+    """Encapsulates submissions with filtering and deduplication operations."""
 
-class BaseMetricService:
-    """Base class for all metric services with shared functionality."""
-
-    @staticmethod
-    def _deduplicate_problems(submissions: List[Submission]) -> List[Submission]:
+    def __init__(self, submissions: List[Submission]):
+        """
+        Initialize an instance which contains original list of submissions.
+        
+        Args:
+            submissions: List of user's submissions
+        """
+        self._submissions = submissions
+    
+    def deduplicate_problems(self, submissions: List[Submission]=[]) -> List[Submission]:
         """
         Keep only the first successful solve for each unique problem.
 
         Args:
-            submissions: List of submissions to deduplicate
+            submissions: List of user's submissions to deduplicate
 
         Returns:
             List of submissions with only first solve per problem
@@ -20,7 +27,10 @@ class BaseMetricService:
         seen_problems = set()
         unique_submissions = []
 
-        for submission in submissions:
+        # Preference given to submissions argument
+        submissions_copy = submissions if submissions else copy.copy(self._submissions)
+
+        for submission in submissions_copy:
             problem_key = submission.problem.problem_key
             if problem_key not in seen_problems:
                 seen_problems.add(problem_key)
@@ -28,15 +38,13 @@ class BaseMetricService:
 
         return unique_submissions
 
-    @staticmethod
-    def _filter_successful_submissions(submissions: List[Submission]) -> List[Submission]:
+    def filter_successful_submissions(self) -> List[Submission]:
         """
         Filter submissions to only include solved problems.
-
-        Args:
-            submissions: List of all submissions
 
         Returns:
             List of only solved submissions
         """
-        return [s for s in submissions if s.is_solved]
+        submissions_copy = copy.copy(self._submissions)
+        successful_submissions = [s for s in submissions_copy if s.is_solved]
+        return successful_submissions

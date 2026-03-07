@@ -8,10 +8,10 @@ from backend.domain.models.difficulty_distribution import (
     DifficultyDistribution,
     RatingRange,
 )
-from backend.domain.services.base import BaseMetricService
+from backend.domain.services.base import SubmissionCollection
 
 
-class DifficultyDistributionService(BaseMetricService):
+class DifficultyDistributionService():
     """Service for generating difficulty distribution analytics."""
 
     # Standard rating bins for Codeforces (100-point intervals)
@@ -61,9 +61,8 @@ class DifficultyDistributionService(BaseMetricService):
             DifficultyDistribution with analyzed data
         """
         # Filter successful submissions
-        successful_submissions = DifficultyDistributionService._filter_successful_submissions(
-            submissions
-        )
+        submission_collection = SubmissionCollection(submissions)
+        successful_submissions = submission_collection.filter_successful_submissions()
 
         if not successful_submissions:
             return DifficultyDistribution(
@@ -73,7 +72,7 @@ class DifficultyDistributionService(BaseMetricService):
             )
 
         # Remove duplicate problems (keep first solve)
-        unique_solves = DifficultyDistributionService._deduplicate_problems(successful_submissions)
+        unique_solves = submission_collection.deduplicate_problems(successful_submissions)
 
         # Group problems by rating bins
         bin_counts = DifficultyDistributionService._create_bin_distribution(unique_solves)

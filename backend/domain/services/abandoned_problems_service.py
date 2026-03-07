@@ -10,10 +10,9 @@ from backend.domain.models.abandoned_problems import (
     TagAbandonedStats,
 )
 from backend.domain.models.codeforces import Submission
-from backend.domain.services.base import BaseMetricService
 
 
-class AbandonedProblemsService(BaseMetricService):
+class AbandonedProblemsService():
     """Service for analyzing abandoned problems (attempted but never solved)."""
 
     @staticmethod
